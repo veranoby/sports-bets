@@ -26,6 +26,11 @@ import UserModal from "../../components/admin/UserModal";
 import { userAPI, adminAPI } from "../../services/api";
 import type { User as UserType } from "../../types";
 
+type RoleFilter = "all" | "admin" | "operator";
+
+const getErrorMessage = (err: unknown, fallback: string): string =>
+  err instanceof Error ? err.message : fallback;
+
 const AdminAdministratorsPage: React.FC = () => {
   const navigate = useNavigate();
   const [administrators, setAdministrators] = useState<UserType[]>([]);
@@ -34,9 +39,7 @@ const AdminAdministratorsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [roleFilter, setRoleFilter] = useState<"all" | "admin" | "operator">(
-    "all",
-  );
+  const [roleFilter, setRoleFilter] = useState<RoleFilter>("all");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isRoleSelectModalOpen, setIsRoleSelectModalOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<"admin" | "operator">(
@@ -58,8 +61,7 @@ const AdminAdministratorsPage: React.FC = () => {
     try {
       const response = await adminAPI.getActiveUsers();
       if (response.success && response.data) {
-        const activeIds = (response.data as any)?.activeUserIds || [];
-        setOnlineUserIds(new Set(activeIds));
+        setOnlineUserIds(new Set(response.data.activeUserIds || []));
       }
     } catch (error) {
       console.error("Error fetching online status:", error);
@@ -116,8 +118,8 @@ const AdminAdministratorsPage: React.FC = () => {
     const fetchCurrentUser = async () => {
       try {
         const response = await userAPI.getProfile();
-        if (response.success) {
-          setCurrentUser((response.data as any).user);
+        if (response.success && response.data?.user) {
+          setCurrentUser(response.data.user);
         }
       } catch (err) {
         console.error("Error fetching current user:", err);
@@ -144,18 +146,20 @@ const AdminAdministratorsPage: React.FC = () => {
       });
 
       if (adminResponse.success) {
-        setAdministrators((adminResponse.data as any)?.users || []);
+        setAdministrators(adminResponse.data?.users ?? []);
       } else {
         throw new Error(adminResponse.error || "Error loading administrators");
       }
 
       if (operatorResponse.success) {
-        setOperators((operatorResponse.data as any)?.users || []);
+        setOperators(operatorResponse.data?.users ?? []);
       } else {
         throw new Error(operatorResponse.error || "Error loading operators");
       }
-    } catch (err: any) {
-      setError(err.message || "Error loading administrator data");
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error ? err.message : "Error loading administrator data",
+      );
     } finally {
       setLoading(false);
     }
@@ -231,8 +235,8 @@ const AdminAdministratorsPage: React.FC = () => {
       } else {
         setError(response.error || "Error deleting user");
       }
-    } catch (err: any) {
-      setError(err.message || "Error deleting user");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Error deleting user"));
     }
   };
 
@@ -246,8 +250,8 @@ const AdminAdministratorsPage: React.FC = () => {
       } else {
         setError("Error approving user");
       }
-    } catch (err: any) {
-      setError(err.message || "Error approving user");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Error approving user"));
     }
   };
 
@@ -263,8 +267,8 @@ const AdminAdministratorsPage: React.FC = () => {
       } else {
         setError("Error rejecting user");
       }
-    } catch (err: any) {
-      setError(err.message || "Error rejecting user");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Error rejecting user"));
     }
   };
 
@@ -421,7 +425,7 @@ const AdminAdministratorsPage: React.FC = () => {
             <div className="flex gap-2">
               <select
                 value={roleFilter}
-                onChange={(e) => setRoleFilter(e.target.value as any)}
+                onChange={(e) => setRoleFilter(e.target.value as RoleFilter)}
                 className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
               >
                 <option value="all">All Roles</option>
@@ -631,9 +635,9 @@ const AdminAdministratorsPage: React.FC = () => {
         <UserModal
           mode={modalState.mode}
           role={
-            (modalState.mode === "edit" && modalState.user
+            modalState.mode === "edit" && modalState.user
               ? modalState.user.role
-              : selectedRole) as any
+              : selectedRole
           }
           user={modalState.user}
           onClose={() => setModalState({ mode: null })}

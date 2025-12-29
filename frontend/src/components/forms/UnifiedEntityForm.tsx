@@ -1,23 +1,69 @@
-// frontend/src/components/forms/UnifiedEntityForm.tsx
-// 🏛️ UNIFICACIÓN DE FORMULARIOS EMPRESA - FASE 5 COMPATIBLE
-// Reemplaza VenueEntityForm.tsx y GalleraEntityForm.tsx con un único componente configurable
-
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
 import { userAPI } from "../../services/api";
 import ImageGalleryUpload from "../shared/ImageGalleryUpload";
-import LoadingSpinner from "../shared/LoadingSpinner";
 import ErrorMessage from "../shared/ErrorMessage";
 import { MapPin, Building, Mail, Globe, Image, Loader2, X } from "lucide-react";
 import type { User } from "../../types";
 
+type EntityType = "venue" | "gallera";
+type ProfileInfo = NonNullable<User["profileInfo"]>;
+
 interface UnifiedEntityFormProps {
-  entityType: "venue" | "gallera";
+  entityType: EntityType;
   userId: string;
-  initialData?: Record<string, any>;
+  initialData?: ProfileInfo;
   onSuccess: (updatedUser: User) => void;
   onCancel: () => void;
 }
+
+interface EntityFormState {
+  businessName: string;
+  location: string;
+  description: string;
+  email: string;
+  website: string;
+  images: string[];
+}
+
+const getInitialFormState = (
+  entityType: EntityType,
+  initialData?: ProfileInfo,
+): EntityFormState => {
+  const entitySpecific = {
+    name:
+      entityType === "venue"
+        ? initialData?.venueName
+        : initialData?.galleraName,
+    location:
+      entityType === "venue"
+        ? initialData?.venueLocation
+        : initialData?.galleraLocation,
+    description:
+      entityType === "venue"
+        ? initialData?.venueDescription
+        : initialData?.galleraDescription,
+    email:
+      entityType === "venue"
+        ? initialData?.venueEmail
+        : initialData?.galleraEmail,
+    website:
+      entityType === "venue"
+        ? initialData?.venueWebsite
+        : initialData?.galleraWebsite,
+  };
+
+  return {
+    businessName: initialData?.businessName ?? entitySpecific.name ?? "",
+    location: initialData?.location ?? entitySpecific.location ?? "",
+    description: initialData?.description ?? entitySpecific.description ?? "",
+    email: entitySpecific.email ?? "",
+    website: entitySpecific.website ?? "",
+    images: initialData?.images ?? [],
+  };
+};
+
+const getErrorMessage = (err: unknown): string =>
+  err instanceof Error ? err.message : "Error al actualizar la información";
 
 const UnifiedEntityForm: React.FC<UnifiedEntityFormProps> = ({
   entityType,
@@ -26,21 +72,9 @@ const UnifiedEntityForm: React.FC<UnifiedEntityFormProps> = ({
   onSuccess,
   onCancel,
 }) => {
-  const [formData, setFormData] = useState<Record<string, any>>({
-    // Common fields
-    businessName:
-      initialData?.businessName || initialData?.[`${entityType}Name`] || "",
-    location:
-      initialData?.location || initialData?.[`${entityType}Location`] || "",
-    description:
-      initialData?.description ||
-      initialData?.[`${entityType}Description`] ||
-      "",
-    email: initialData?.email || initialData?.[`${entityType}Email`] || "",
-    website:
-      initialData?.website || initialData?.[`${entityType}Website`] || "",
-    images: initialData?.images || [],
-  });
+  const [formData, setFormData] = useState<EntityFormState>(() =>
+    getInitialFormState(entityType, initialData),
+  );
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -68,28 +102,35 @@ const UnifiedEntityForm: React.FC<UnifiedEntityFormProps> = ({
     setError(null);
 
     try {
-      // Prepare profileInfo data structure based on entity type
-      const verificationLevel: User["profileInfo"]["verificationLevel"] =
+      const verificationLevel: ProfileInfo["verificationLevel"] =
         initialData?.verificationLevel === "full" ||
         initialData?.verificationLevel === "basic" ||
         initialData?.verificationLevel === "none"
           ? initialData.verificationLevel
           : "none";
 
-      const profileInfoUpdate: User["profileInfo"] = {
+      const profileInfoUpdate: ProfileInfo = {
         businessName: formData.businessName,
         location: formData.location,
         description: formData.description,
         verificationLevel,
         images: formData.images,
-        [`${entityType}Name`]: formData.businessName,
-        [`${entityType}Location`]: formData.location,
-        [`${entityType}Description`]: formData.description,
-        [`${entityType}Email`]: formData.email,
-        [`${entityType}Website`]: formData.website,
-      } as User["profileInfo"];
+      };
 
-      // Use correct endpoint: updateProfile for own profile, updateProfileInfo for admin editing others
+      if (entityType === "venue") {
+        profileInfoUpdate.venueName = formData.businessName;
+        profileInfoUpdate.venueLocation = formData.location;
+        profileInfoUpdate.venueDescription = formData.description;
+        profileInfoUpdate.venueEmail = formData.email;
+        profileInfoUpdate.venueWebsite = formData.website;
+      } else {
+        profileInfoUpdate.galleraName = formData.businessName;
+        profileInfoUpdate.galleraLocation = formData.location;
+        profileInfoUpdate.galleraDescription = formData.description;
+        profileInfoUpdate.galleraEmail = formData.email;
+        profileInfoUpdate.galleraWebsite = formData.website;
+      }
+
       const response = await userAPI.updateProfile({
         profileInfo: profileInfoUpdate,
       });
@@ -105,8 +146,8 @@ const UnifiedEntityForm: React.FC<UnifiedEntityFormProps> = ({
       } else {
         throw new Error(response.error || "Error al actualizar la información");
       }
-    } catch (err: any) {
-      setError(err.message || "Error al actualizar la información");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }

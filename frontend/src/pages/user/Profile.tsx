@@ -14,7 +14,10 @@ import UserProfileForm from "../../components/forms/UserProfileForm";
 import UnifiedEntityForm from "../../components/forms/UnifiedEntityForm";
 import useMembershipCheck from "../../hooks/useMembershipCheck";
 import MembershipSection from "../../components/user/MembershipSection";
-import BusinessInfoSection from "../../components/user/BusinessInfoSection";
+import BusinessInfoSection, {
+  type BusinessInfoSectionData,
+} from "../../components/user/BusinessInfoSection";
+import type { UserSubscription } from "../../types";
 
 const Profile: React.FC = () => {
   const { user, refreshUser } = useAuth();
@@ -27,10 +30,13 @@ const Profile: React.FC = () => {
 
   // ✅ Auto-scroll to membership section when navigated with state.section = "membership"
   useEffect(() => {
-    if (
-      (location.state as any)?.section === "membership" &&
-      membershipRef.current
-    ) {
+    const isMembershipSection =
+      typeof location.state === "object" &&
+      location.state !== null &&
+      "section" in location.state &&
+      location.state.section === "membership";
+
+    if (isMembershipSection && membershipRef.current) {
       setTimeout(() => {
         membershipRef.current?.scrollIntoView({
           behavior: "smooth",
@@ -49,14 +55,10 @@ const Profile: React.FC = () => {
     setIsEditing(false);
   }, []);
 
-  const handleBusinessSave = useCallback(
-    async (updatedUser: any) => {
-      // Refresh user context with updated profileInfo
-      await refreshUser();
-      setIsEditingBusiness(false);
-    },
-    [refreshUser],
-  );
+  const handleBusinessSave = useCallback(async () => {
+    await refreshUser();
+    setIsEditingBusiness(false);
+  }, [refreshUser]);
 
   const handleBusinessCancel = useCallback(() => {
     setIsEditingBusiness(false);
@@ -75,6 +77,76 @@ const Profile: React.FC = () => {
   if (!user) {
     return <LoadingSpinner />;
   }
+
+  const isBusinessRole = user.role === "venue" || user.role === "gallera";
+  const businessEntityType: "venue" | "gallera" | null = isBusinessRole
+    ? user.role === "venue"
+      ? "venue"
+      : "gallera"
+    : null;
+
+  const businessData: BusinessInfoSectionData | null =
+    isBusinessRole && user.profileInfo
+      ? {
+          name:
+            user.role === "venue"
+              ? user.profileInfo.venueName ||
+                user.profileInfo.businessName ||
+                user.profileInfo.fullName ||
+                user.username
+              : user.profileInfo.galleraName ||
+                user.profileInfo.businessName ||
+                user.profileInfo.fullName ||
+                user.username,
+          location:
+            user.role === "venue"
+              ? (user.profileInfo.venueLocation ?? user.profileInfo.location)
+              : (user.profileInfo.galleraLocation ?? user.profileInfo.location),
+          description:
+            user.role === "venue"
+              ? (user.profileInfo.venueDescription ??
+                user.profileInfo.description)
+              : (user.profileInfo.galleraDescription ??
+                user.profileInfo.description),
+          status: user.profileInfo.verificationLevel || "pending",
+          certified: user.profileInfo.certified ?? null,
+          images: user.profileInfo.images ?? null,
+          contactInfo: {
+            email:
+              user.role === "venue"
+                ? user.profileInfo.venueEmail
+                : user.profileInfo.galleraEmail,
+            phone: user.profileInfo.phoneNumber ?? null,
+            website:
+              user.role === "venue"
+                ? user.profileInfo.venueWebsite
+                : user.profileInfo.galleraWebsite,
+            address: user.profileInfo.address ?? null,
+          },
+        }
+      : null;
+
+  const normalizeSubscriptionStatus = (
+    status: UserSubscription["status"],
+  ): "pending" | "active" | "expired" => {
+    switch (status) {
+      case "active":
+        return "active";
+      case "pending":
+        return "pending";
+      case "expired":
+      case "cancelled":
+      default:
+        return "expired";
+    }
+  };
+
+  const membershipSubscription = user.subscription
+    ? {
+        ...user.subscription,
+        status: normalizeSubscriptionStatus(user.subscription.status),
+      }
+    : null;
 
   const memberSince = user?.createdAt
     ? new Date(user.createdAt).toLocaleDateString("es-ES", {
@@ -194,13 +266,12 @@ const Profile: React.FC = () => {
             </div>
 
             {/* ✅ NUEVO: Chip de pendiente aprobación para roles venue/gallera */}
-            {!(user as any).approved &&
-              ["venue", "gallera"].includes(user.role) && (
-                <div className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1 animate-pulse mt-3">
-                  <Clock className="w-3 h-3" />
-                  Pendiente de aprobación
-                </div>
-              )}
+            {!user.approved && ["venue", "gallera"].includes(user.role) && (
+              <div className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1 animate-pulse mt-3">
+                <Clock className="w-3 h-3" />
+                Pendiente de aprobación
+              </div>
+            )}
           </div>
         </div>
 
@@ -233,55 +304,26 @@ const Profile: React.FC = () => {
         </div>
 
         {/* Business Info Section (Conditional) */}
-        {!isEditing && (user.role === "venue" || user.role === "gallera") && (
+        {!isEditing && isBusinessRole && (
           <>
-            {!isEditingBusiness ? (
+            {!isEditingBusiness && businessEntityType ? (
               <BusinessInfoSection
-                type={user.role}
-                data={
-                  {
-                    ...user.profileInfo,
-                    name:
-                      user.role === "venue"
-                        ? user.profileInfo?.venueName
-                        : user.profileInfo?.galleraName,
-                    location:
-                      user.role === "venue"
-                        ? user.profileInfo?.venueLocation
-                        : user.profileInfo?.galleraLocation,
-                    description:
-                      user.role === "venue"
-                        ? user.profileInfo?.venueDescription
-                        : user.profileInfo?.galleraDescription,
-                    status: user.profileInfo?.verificationLevel || "pending",
-                    certified: user.profileInfo?.certified || false,
-                    images: user.profileInfo?.images || [],
-                    contactInfo: {
-                      email:
-                        user.role === "venue"
-                          ? user.profileInfo?.venueEmail
-                          : user.profileInfo?.galleraEmail,
-                      phone: user.profileInfo?.phoneNumber,
-                      website:
-                        user.role === "venue"
-                          ? user.profileInfo?.venueWebsite
-                          : user.profileInfo?.galleraWebsite,
-                      address: user.profileInfo?.address,
-                    },
-                  } as any
-                } // Temporary type assertion - needs better type mapping
+                type={businessEntityType}
+                data={businessData}
                 onEdit={() => setIsEditingBusiness(true)}
               />
             ) : (
-              <div className="bg-blue-50 rounded-2xl shadow-sm border border-gray-100 p-8 mb-6">
-                <UnifiedEntityForm
-                  entityType={user.role as "venue" | "gallera"}
-                  userId={user.id}
-                  initialData={user.profileInfo || {}}
-                  onSuccess={handleBusinessSave}
-                  onCancel={handleBusinessCancel}
-                />
-              </div>
+              businessEntityType && (
+                <div className="bg-blue-50 rounded-2xl shadow-sm border border-gray-100 p-8 mb-6">
+                  <UnifiedEntityForm
+                    entityType={businessEntityType}
+                    userId={user.id}
+                    initialData={user.profileInfo || {}}
+                    onSuccess={handleBusinessSave}
+                    onCancel={handleBusinessCancel}
+                  />
+                </div>
+              )
             )}
           </>
         )}
@@ -291,17 +333,7 @@ const Profile: React.FC = () => {
           <div ref={membershipRef} id="membership" className="mt-6">
             <MembershipSection
               user={user}
-              subscription={
-                user.subscription
-                  ? ({
-                      ...user.subscription,
-                      status: user.subscription.status as
-                        | "pending"
-                        | "active"
-                        | "expired", // Cast to expected type
-                    } as any)
-                  : null
-              }
+              subscription={membershipSubscription}
             />
           </div>
         )}

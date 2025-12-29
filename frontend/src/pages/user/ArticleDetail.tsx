@@ -7,6 +7,53 @@ import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import { ArrowLeft, Calendar, User, Tag } from "lucide-react";
 
+type ApiArticleResponse = {
+  data?: Article;
+  message?: string;
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
+const extractArticle = (payload: unknown): Article | null => {
+  if (!isRecord(payload)) {
+    return null;
+  }
+
+  const { data } = payload as ApiArticleResponse;
+  return data ?? null;
+};
+
+const getErrorMessage = (error: unknown): string => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (typeof error === "string") {
+    return error;
+  }
+
+  if (isRecord(error) && typeof error.message === "string") {
+    return error.message;
+  }
+
+  return "Error al cargar el artículo";
+};
+
+const getResponseStatus = (error: unknown): number | undefined => {
+  if (!isRecord(error)) {
+    return undefined;
+  }
+
+  const response = error.response;
+  if (!isRecord(response)) {
+    return undefined;
+  }
+
+  const { status } = response;
+  return typeof status === "number" ? status : undefined;
+};
+
 const ArticleDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -20,11 +67,10 @@ const ArticleDetail: React.FC = () => {
       try {
         setLoading(true);
         const response = await apiClient.get(`/articles/${id}`);
-
-        const articleData = response.data.data;
+        const articleData = extractArticle(response.data);
 
         // ✅ Check if article is premium and user doesn't have access
-        if (articleData.is_premium_content && !isPremium) {
+        if (articleData?.is_premium_content && !isPremium) {
           // Premium content requires active subscription
           navigate("/profile", {
             replace: true,
@@ -33,19 +79,20 @@ const ArticleDetail: React.FC = () => {
           return;
         }
 
-        setArticle(articleData);
+        if (articleData) {
+          setArticle(articleData);
+        } else {
+          setError("Artículo no encontrado");
+        }
       } catch (err: unknown) {
-        // Changed from 'any' to 'unknown' for better type safety
-        const errorMessage =
-          (err as any)?.response?.data?.message ||
-          (err as Error)?.message ||
-          "Error al cargar el artículo";
+        const errorMessage = getErrorMessage(err);
+        const status = getResponseStatus(err);
 
         // Check if this is a premium content access error
         if (
           errorMessage.toLowerCase().includes("premium") ||
-          errorMessage.includes("subscription") ||
-          (err as any)?.response?.status === 403
+          errorMessage.toLowerCase().includes("subscription") ||
+          status === 403
         ) {
           // Redirect to profile membership section
           navigate("/profile", {

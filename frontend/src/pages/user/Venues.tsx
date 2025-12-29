@@ -50,6 +50,56 @@ interface VenueUser {
   };
 }
 
+type RawVenue = Record<string, unknown>;
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
+const getString = (value: unknown): string | undefined =>
+  typeof value === "string" ? value : undefined;
+
+const getNumber = (value: unknown): number | undefined =>
+  typeof value === "number" ? value : undefined;
+
+const getStringArray = (value: unknown): string[] | undefined => {
+  if (!Array.isArray(value)) return undefined;
+  return value.filter((item): item is string => typeof item === "string");
+};
+
+const getRecord = (value: unknown): Record<string, unknown> | null =>
+  isRecord(value) ? value : null;
+
+const isVerificationLevel = (
+  value: unknown,
+): value is "none" | "basic" | "full" =>
+  value === "none" || value === "basic" || value === "full";
+
+const extractVenueUsers = (payload: unknown): RawVenue[] => {
+  if (isRecord(payload) && Array.isArray(payload.users)) {
+    return payload.users
+      .filter((user): user is RawVenue => isRecord(user))
+      .map((user) => user as RawVenue);
+  }
+  return [];
+};
+
+const getArticlesTotal = (payload: unknown): number => {
+  if (!isRecord(payload)) {
+    return 0;
+  }
+
+  if (typeof payload.total === "number") {
+    return payload.total;
+  }
+
+  const articles = payload.articles;
+  if (Array.isArray(articles)) {
+    return articles.length;
+  }
+
+  return 0;
+};
+
 // Enhanced Venue Card Component - Following Events page sophistication
 const VenueCard = React.memo(
   ({ venue, onClick }: { venue: VenueProfile; onClick: () => void }) => {
@@ -196,34 +246,62 @@ const VenuesPage: React.FC = () => {
         setLoading(true);
         const response = await venuesAPI.getAll();
         if (response.success) {
+          const rawVenues = extractVenueUsers(response.data);
           const venueProfiles = await Promise.all(
-            ((response.data as { users: any[] })?.users || []).map(
-              async (venue: any) => {
-                const articles = await articlesAPI.getAll({
-                  author_id: venue.owner?.id || venue.id,
-                });
-                return {
-                  id: venue.id,
-                  name: venue.name || "Gallera sin nombre",
-                  description: venue.description || "Información no disponible",
-                  location: venue.location || "Ubicación no especificada",
-                  imageUrl: venue.profileImage,
-                  ownerImage: venue.profileImage,
-                  galleryImages: venue.images || [],
-                  articlesCount: articles.success
-                    ? (articles.data as { total: number })?.total || 0
-                    : 0,
-                  establishedDate: venue.createdAt,
-                  isVerified:
-                    venue.owner?.profileInfo?.verificationLevel === "full" ||
-                    false,
-                  rating: venue.owner?.profileInfo?.rating || 0,
-                  activeEvents: 0,
-                };
-              },
+            rawVenues.map(async (venueRecord) => {
+              const venueId = getString(venueRecord.id ?? venueRecord["id"]);
+              if (!venueId) {
+                return null;
+              }
+
+              const venueOwner = getRecord(venueRecord.owner);
+              const authorId =
+                getString(venueOwner?.id ?? venueOwner?.["id"]) || venueId;
+
+              const articles = await articlesAPI.getAll({
+                author_id: authorId,
+              });
+
+              const articleCount = articles.success
+                ? getArticlesTotal(articles.data)
+                : 0;
+
+              const ownerProfileInfo = getRecord(venueOwner?.profileInfo);
+              const verificationLevel = ownerProfileInfo?.verificationLevel;
+              const isVerified = isVerificationLevel(verificationLevel)
+                ? verificationLevel === "full"
+                : false;
+
+              const rating =
+                getNumber(ownerProfileInfo?.rating) ??
+                getNumber(ownerProfileInfo?.["rating"]) ??
+                0;
+
+              return {
+                id: venueId,
+                name: getString(venueRecord.name) || "Gallera sin nombre",
+                description:
+                  getString(venueRecord.description) ||
+                  "Información no disponible",
+                location:
+                  getString(venueRecord.location) ||
+                  "Ubicación no especificada",
+                imageUrl: getString(venueRecord.profileImage),
+                ownerImage: getString(venueRecord.profileImage),
+                galleryImages: getStringArray(venueRecord.images) || [],
+                articlesCount: articleCount,
+                establishedDate: getString(venueRecord.createdAt),
+                isVerified,
+                rating,
+                activeEvents: 0,
+              } satisfies VenueProfile;
+            }),
+          );
+          setVenues(
+            venueProfiles.filter(
+              (profile): profile is VenueProfile => profile !== null,
             ),
           );
-          setVenues(venueProfiles);
         } else {
           setError(
             "Error al cargar las galleras. Inténtalo de nuevo más tarde.",

@@ -3,17 +3,18 @@ import axios, {
   type Method,
   type AxiosRequestConfig,
 } from "axios";
-import type { Article } from "../types/article";
 import type {
   ApiResponse,
   ApiError,
   Event,
   Fight,
-  Venue,
-  Gallera,
   Bet,
   User,
-} from "../types/index";
+  UserSubscription,
+  Wallet,
+  MonitoringAlert,
+  SystemStats,
+} from "../types";
 
 const api = axios.create({
   baseURL: "/api", // The vite proxy in vite.config.ts will handle this
@@ -21,6 +22,36 @@ const api = axios.create({
     "Content-Type": "application/json",
   },
 });
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
+interface BackendErrorPayload {
+  message?: string;
+  error?: string;
+  status?: number;
+  code?: number;
+}
+
+const extractBackendErrorMessage = (
+  payload: unknown,
+): { message?: string; status?: number } => {
+  if (!isRecord(payload)) {
+    return {};
+  }
+
+  const { message, error, status, code } = payload as BackendErrorPayload;
+
+  return {
+    message:
+      typeof message === "string"
+        ? message
+        : typeof error === "string"
+          ? error
+          : undefined,
+    status: typeof status === "number" ? status : code,
+  };
+};
 
 // Optional: Add interceptors for handling tokens or errors globally.
 api.interceptors.request.use((config) => {
@@ -59,18 +90,18 @@ const apiCall = async <T>(
     console.error(`Error at ${endpoint}:`, error);
     const err = error as AxiosError<unknown>;
 
-    // Extract detailed error message from backend response
-    const backendResponse = err.response?.data as any;
-    console.error("Backend response:", backendResponse);
+    const backendResponse = err.response?.data;
+    if (backendResponse !== undefined) {
+      console.error("Backend response:", backendResponse);
+    }
+
+    const { message: backendMessage, status: backendStatus } =
+      extractBackendErrorMessage(backendResponse);
 
     const apiError: ApiError = {
       name: "ApiError",
-      message:
-        backendResponse?.message ||
-        backendResponse?.error ||
-        err.message ||
-        "An error occurred",
-      status: err.response?.status,
+      message: backendMessage ?? err.message ?? "An error occurred",
+      status: backendStatus ?? err.response?.status,
     };
 
     console.error("Extracted error message:", apiError.message);
@@ -146,7 +177,9 @@ export const adminAPI = {
     return apiCall("delete", `/admin/sessions/${userId}`);
   },
   getActiveUsers: async () => {
-    return apiCall("get", `/admin/sessions/active-users`);
+    return apiCall<{
+      activeUserIds: string[];
+    }>("get", `/admin/sessions/active-users`);
   },
   adjustUserBalance: async (
     userId: string,
@@ -158,13 +191,20 @@ export const adminAPI = {
 
 export const userAPI = {
   create: async (data: {
-    username: string;
-    email: string;
-    password: string;
-    role: string;
-    profileInfo?: Record<string, any>;
+    email?: string;
+    username?: string;
+    password?: string;
+    profileInfo?: User["profileInfo"];
   }) => {
     return apiCall("post", "/users", data);
+  },
+  updateProfile: async (data: {
+    email?: string;
+    username?: string;
+    password?: string;
+    profileInfo?: User["profileInfo"];
+  }) => {
+    return apiCall("put", "/users/profile", data);
   },
   uploadPaymentProof: async (formData: FormData) => {
     return apiCall("post", "/users/upload-payment-proof", formData, {
@@ -172,13 +212,20 @@ export const userAPI = {
     });
   },
   getProfile: async () => {
-    return apiCall("get", "/users/profile");
+    return apiCall<{
+      user: User;
+      subscription?: UserSubscription;
+      wallet?: Wallet;
+    }>("get", "/users/profile");
+  },
+  getById: async (userId: string) => {
+    return apiCall<User>("get", `/users/${userId}`);
   },
   getAll: async (params?: Record<string, unknown>) => {
-    return apiCall("get", "/users", params);
-  },
-  getById: async (id: string) => {
-    return apiCall("get", `/users/${id}`);
+    return apiCall<{
+      users: User[];
+      total: number;
+    }>("get", "/users", params);
   },
   delete: async (id: string) => {
     return apiCall("delete", `/users/${id}`);
@@ -195,16 +242,14 @@ export const userAPI = {
   updateStatus: async (id: string, isActive: boolean) => {
     return apiCall<User>("put", `/users/${id}`, { isActive });
   },
-  updateProfile: async (data: Partial<User>) => {
-    return apiCall<User>("put", "/users/profile", {
-      profileInfo: data.profileInfo,
-    });
-  },
   updateProfileInfo: async (
     userId: string,
-    profileInfo: Record<string, any>,
+    data: {
+      profileInfo: User["profileInfo"];
+      subscription?: Partial<UserSubscription>;
+    },
   ) => {
-    return apiCall<User>("put", `/users/${userId}/profile-info`, profileInfo);
+    return apiCall("put", `/users/${userId}/profile-info`, data);
   },
 };
 
@@ -289,12 +334,10 @@ export const eventsAPI = {
 // Monitoring API - System alerts and live statistics
 export const systemAPI = {
   getAlerts: async () => {
-    // Get consolidated alerts from database, memory, and connection pool
-    return apiCall("get", "/monitoring/alerts");
+    return apiCall<MonitoringAlert[]>("get", "/monitoring/alerts");
   },
   getLiveStats: async () => {
-    // Get live system statistics (connections, memory, etc.)
-    return apiCall("get", "/monitoring/stats");
+    return apiCall<SystemStats>("get", "/monitoring/stats");
   },
 };
 

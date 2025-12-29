@@ -29,11 +29,16 @@ const PAGOProposalModal: React.FC<PAGOProposalModalProps> = ({
   users,
   currentUserId,
 }) => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    targetUserId: string;
+    amount: number;
+    proposalAmount: number;
+    side: "red" | "blue";
+  }>({
     targetUserId: "",
     amount: 0,
     proposalAmount: 0,
-    side: "red" as "red" | "blue",
+    side: "red",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -77,14 +82,25 @@ const PAGOProposalModal: React.FC<PAGOProposalModalProps> = ({
         side: formData.side,
       });
       onClose();
-    } catch (err: any) {
-      setError(err.message || "Error al crear la propuesta PAGO");
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error ? err.message : "Error al crear la propuesta PAGO",
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = <
+    K extends "targetUserId" | "amount" | "proposalAmount" | "side",
+  >(
+    field: K,
+    value: K extends "side"
+      ? "red" | "blue"
+      : K extends "targetUserId"
+        ? string
+        : number,
+  ) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,

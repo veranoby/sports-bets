@@ -50,6 +50,83 @@ interface Venue {
   name: string;
 }
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
+const extractArticles = (payload: unknown): Article[] => {
+  if (Array.isArray(payload)) {
+    return payload as Article[];
+  }
+
+  if (isRecord(payload)) {
+    const maybeArticles = payload["articles"];
+    if (Array.isArray(maybeArticles)) {
+      return maybeArticles as Article[];
+    }
+  }
+
+  return [];
+};
+
+const normalizeVenueFromUser = (value: unknown): Venue | null => {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const id = typeof value.id === "string" ? value.id : null;
+  if (!id) {
+    return null;
+  }
+
+  const profileInfo = isRecord(value.profileInfo) ? value.profileInfo : null;
+  const profileName =
+    (profileInfo &&
+      (typeof profileInfo.venueName === "string"
+        ? profileInfo.venueName
+        : typeof profileInfo.businessName === "string"
+          ? profileInfo.businessName
+          : typeof profileInfo.fullName === "string"
+            ? profileInfo.fullName
+            : undefined)) ??
+    undefined;
+
+  const name =
+    typeof value.name === "string"
+      ? value.name
+      : typeof value.username === "string"
+        ? value.username
+        : profileName;
+
+  return name ? { id, name } : null;
+};
+
+const isVenue = (value: unknown): value is Venue => {
+  if (!isRecord(value)) return false;
+  return typeof value.id === "string" && typeof value.name === "string";
+};
+
+const extractVenues = (payload: unknown): Venue[] => {
+  if (Array.isArray(payload)) {
+    return payload.filter(isVenue);
+  }
+
+  if (isRecord(payload)) {
+    const maybeVenues = payload["venues"];
+    if (Array.isArray(maybeVenues)) {
+      return maybeVenues.filter(isVenue);
+    }
+
+    const maybeUsers = payload["users"];
+    if (Array.isArray(maybeUsers)) {
+      return maybeUsers
+        .map((user) => normalizeVenueFromUser(user))
+        .filter((venue): venue is Venue => venue !== null);
+    }
+  }
+
+  return [];
+};
+
 const AdminArticlesPage: React.FC = () => {
   const [searchParams] = useSearchParams();
 
@@ -111,32 +188,25 @@ const AdminArticlesPage: React.FC = () => {
     setError(null);
     // For admin, fetch ALL articles (not just published) by not applying status filter
     // The backend will return all for admin when no status is specified
-    const articlesRes = await articlesAPI.getAll({
-      limit: 1000,
-      includeAuthor: true,
-      includeVenue: true,
-    });
-    const venuesRes = await userAPI.getAll({
-      role: "venue",
-      limit: 100,
-    });
+    const [articlesRes, venuesRes] = await Promise.all([
+      articlesAPI.getAll({
+        limit: 1000,
+        includeAuthor: true,
+        includeVenue: true,
+      }),
+      userAPI.getAll({
+        role: "venue",
+        limit: 100,
+      }),
+    ]);
 
     if (articlesRes.success && venuesRes.success) {
-      // The API returns data in the format { success: boolean, data: { articles: [...], pagination: {...} } }
-      const articleData = articlesRes.data;
-      setArticles(
-        Array.isArray(articleData)
-          ? articleData
-          : (articleData as any)?.articles || [],
-      );
-      setVenues((venuesRes.data as any)?.venues || []);
-      // Actualizar pendientes
+      const articleList = extractArticles(articlesRes.data);
+      setArticles(articleList);
       setPendingArticles(
-        (Array.isArray(articleData)
-          ? articleData
-          : (articleData as any)?.articles || []
-        ).filter((a: Article) => a.status === "pending") || [],
+        articleList.filter((article) => article.status === "pending"),
       );
+      setVenues(extractVenues(venuesRes.data));
     } else {
       setError(
         articlesRes.error || venuesRes.error || "Error loading articles",
@@ -169,25 +239,21 @@ const AdminArticlesPage: React.FC = () => {
     const fetchArticles = async () => {
       setLoading(true);
       setError(null);
-      const articlesRes = await articlesAPI.getAll({
-        limit: 1000,
-        includeAuthor: true,
-        includeVenue: true,
-      });
-      const venuesRes = await userAPI.getAll({
-        role: "venue",
-        limit: 100,
-      });
+      const [articlesRes, venuesRes] = await Promise.all([
+        articlesAPI.getAll({
+          limit: 1000,
+          includeAuthor: true,
+          includeVenue: true,
+        }),
+        userAPI.getAll({
+          role: "venue",
+          limit: 100,
+        }),
+      ]);
 
       if (articlesRes.success && venuesRes.success) {
-        // The API returns data in the format { success: boolean, data: { articles: [...], pagination: {...} } }
-        const articleData = articlesRes.data;
-        setArticles(
-          Array.isArray(articleData)
-            ? articleData
-            : (articleData as any)?.articles || [],
-        );
-        setVenues((venuesRes.data as any)?.venues || []);
+        setArticles(extractArticles(articlesRes.data));
+        setVenues(extractVenues(venuesRes.data));
       } else {
         setError(
           articlesRes.error || venuesRes.error || "Error loading articles",

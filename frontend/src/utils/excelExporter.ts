@@ -3,6 +3,9 @@
 // Uses xlsx library to generate .xlsx files with proper formatting
 
 import { utils, writeFile } from "xlsx";
+import type { User } from "../types";
+import type { WalletOperation } from "../types/walletOperation";
+import type { UnifiedBet } from "../types/unified";
 
 /**
  * Export wallet operations to Excel file with proper formatting and filters
@@ -10,7 +13,13 @@ import { utils, writeFile } from "xlsx";
  * @param filename - Name for the output Excel file
  */
 export const exportWalletOperationsToExcel = (
-  operations: any[],
+  operations: Array<
+    WalletOperation & {
+      user?: Pick<User, "username" | "id"> | null;
+      processedAt?: string | null;
+      completedAt?: string | null;
+    }
+  >,
   filename: string = "wallet-operations.xlsx",
 ) => {
   // Prepare data with proper column headers
@@ -69,7 +78,7 @@ export const exportWalletOperationsToExcel = (
  * @param filename - Name for the output Excel file
  */
 export const exportBetsToExcel = (
-  bets: any[],
+  bets: UnifiedBet[],
   filename: string = "bets.xlsx",
 ) => {
   const worksheetData = bets.map((bet) => ({
@@ -121,7 +130,15 @@ export const exportBetsToExcel = (
  * @param filename - Name for the output Excel file
  */
 export const exportUsersToExcel = (
-  users: any[],
+  users: Array<
+    User & {
+      lastLoginAt?: string;
+      currentSubscription?: {
+        type?: string;
+        expiresAt?: string;
+      };
+    }
+  >,
   filename: string = "users.xlsx",
 ) => {
   const worksheetData = users.map((user) => ({

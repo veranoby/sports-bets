@@ -26,94 +26,126 @@ import SSEErrorBoundary from "../../components/admin/SSEErrorBoundary";
 
 // APIs (con fallback a mock)
 import { systemAPI } from "../../services/api";
+import type { MonitoringAlert, SystemStats, User } from "../../types";
 
-interface AlertItem {
-  id: string;
-  level: "critical" | "warning" | "info";
-  service: string;
-  message: string;
-  timestamp: string;
-  resolved: boolean;
-}
+type LiveStats = Pick<
+  SystemStats,
+  | "activeUsers"
+  | "liveEvents"
+  | "activeBets"
+  | "connectionCount"
+  | "requestsPerMinute"
+  | "errorRate"
+>;
 
-interface LiveStats {
-  activeUsers: number;
-  liveEvents: number;
-  activeBets: number;
-  connectionCount: number;
-  requestsPerMinute: number;
-  errorRate: number;
-}
+const getErrorMessage = (err: unknown, fallback: string): string =>
+  err instanceof Error ? err.message : fallback;
+
+const parseStoredUser = (): User | null => {
+  const rawUser = localStorage.getItem("user");
+  if (!rawUser) return null;
+
+  try {
+    const parsed = JSON.parse(rawUser);
+    if (parsed && typeof parsed === "object" && "role" in parsed) {
+      return parsed as User;
+    }
+  } catch {
+    // Ignore malformed data
+  }
+  return null;
+};
+
+const buildLiveStats = (
+  stats: SystemStats | null,
+  options?: { restrictSensitiveMetrics?: boolean },
+): LiveStats => {
+  const baseStats: LiveStats = {
+    activeUsers: stats?.activeUsers ?? 0,
+    liveEvents: stats?.liveEvents ?? 0,
+    activeBets: stats?.activeBets ?? 0,
+    connectionCount: stats?.connectionCount ?? 0,
+    requestsPerMinute: stats?.requestsPerMinute ?? 0,
+    errorRate: stats?.errorRate ?? 0,
+  };
+
+  if (options?.restrictSensitiveMetrics) {
+    return {
+      ...baseStats,
+      activeBets: 0,
+      requestsPerMinute: 0,
+      errorRate: 0,
+    };
+  }
+
+  return baseStats;
+};
+
+const filterStreamingAlerts = (alerts: MonitoringAlert[]): MonitoringAlert[] =>
+  alerts.filter((alert) => {
+    const service = alert.service.toLowerCase();
+    return service.includes("stream") || service.includes("rtmp");
+  });
 
 const AdminMonitoringPage: React.FC = () => {
   // Estados principales
-  const [alerts, setAlerts] = useState<AlertItem[]>([]);
+  const [alerts, setAlerts] = useState<MonitoringAlert[]>([]);
   const [liveStats, setLiveStats] = useState<LiveStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Obtener rol actual para restricciones
-  const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
-  const isOperator = currentUser.role === "operator";
+  const currentUser = parseStoredUser();
+  const isOperator = currentUser?.role === "operator";
 
   // Estados UI
-  const [selectedAlert, setSelectedAlert] = useState<AlertItem | null>(null);
+  const [selectedAlert, setSelectedAlert] = useState<MonitoringAlert | null>(
+    null,
+  );
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
   // Fetch datos iniciales
   const fetchInitialData = useCallback(async () => {
     setError(null);
 
-    if (isOperator) {
-      // Operadores solo ven alertas de streaming y stats limitadas
-      const alertsRes = await systemAPI
-        .getAlerts()
-        .catch(() => ({ success: true, data: [] }));
-      const statsRes = await systemAPI
-        .getLiveStats()
-        .catch(() => ({ success: true, data: null }));
+    try {
+      const [alertsRes, statsRes] = await Promise.all([
+        systemAPI.getAlerts(),
+        systemAPI.getLiveStats(),
+      ]);
 
-      setAlerts(
-        alertsRes.success
-          ? ((alertsRes.data as AlertItem[]) || []).filter(
-              (alert: AlertItem) =>
-                alert.service.toLowerCase().includes("stream") ||
-                alert.service.toLowerCase().includes("rtmp"),
-            )
-          : [],
-      );
-      setLiveStats({
-        ...(statsRes.success ? (statsRes.data as any) : {}),
-        activeUsers: statsRes.success
-          ? (statsRes.data as any)?.activeUsers || 0
-          : 0,
-        liveEvents: statsRes.success
-          ? (statsRes.data as any)?.liveEvents || 0
-          : 0,
-        activeBets: 0,
-        connectionCount: statsRes.success
-          ? (statsRes.data as any)?.connectionCount || 0
-          : 0,
-        requestsPerMinute: 0,
-        errorRate: 0,
-      });
-    } else {
-      // Admin ve todo
-      const alertsRes = await systemAPI.getAlerts();
-      const statsRes = await systemAPI.getLiveStats();
+      if (isOperator) {
+        const alertsData = alertsRes.success ? (alertsRes.data ?? []) : [];
+        setAlerts(filterStreamingAlerts(alertsData));
 
-      if (alertsRes.success && statsRes.success) {
-        setAlerts(alertsRes.data as AlertItem[]);
-        setLiveStats(statsRes.data as LiveStats);
+        const statsPayload = buildLiveStats(
+          statsRes.success ? (statsRes.data ?? null) : null,
+          { restrictSensitiveMetrics: true },
+        );
+        setLiveStats(statsPayload);
       } else {
-        setError("Error al cargar datos iniciales de monitoreo");
-        setAlerts([]);
-        setLiveStats(null);
-      }
-    }
+        if (!alertsRes.success || !statsRes.success) {
+          throw new Error(
+            alertsRes.error ||
+              statsRes.error ||
+              "Error al cargar datos iniciales de monitoreo",
+          );
+        }
 
-    setLastUpdate(new Date());
-    setLoading(false);
+        setAlerts(alertsRes.data ?? []);
+        setLiveStats(buildLiveStats(statsRes.data ?? null));
+      }
+
+      setLastUpdate(new Date());
+    } catch (err: unknown) {
+      setError(
+        getErrorMessage(err, "Error al cargar datos iniciales de monitoreo"),
+      );
+      setAlerts([]);
+      setLiveStats(null);
+    } finally {
+      setLoading(false);
+    }
   }, [isOperator]);
 
   // Polling cada 5 segundos para datos en tiempo real
@@ -124,7 +156,7 @@ const AdminMonitoringPage: React.FC = () => {
   }, [fetchInitialData]);
 
   // Resolver alerta individual
-  const resolveAlert = useCallback(async (alertId: string) => {
+  const resolveAlert = useCallback((alertId: string) => {
     setAlerts((prev) =>
       prev.map((alert) =>
         alert.id === alertId ? { ...alert, resolved: true } : alert,
@@ -309,7 +341,7 @@ const AdminMonitoringPage: React.FC = () => {
                   Estado de Servicios
                 </h2>
               </div>
-              <LiveSystemStatus {...({ restricted: isOperator } as any)} />
+              <LiveSystemStatus />
             </Card>
 
             {/* Monitor de Eventos en Vivo */}
@@ -320,7 +352,7 @@ const AdminMonitoringPage: React.FC = () => {
                   Eventos en Vivo
                 </h2>
               </div>
-              <LiveEventMonitor {...({ restricted: isOperator } as any)} />
+              <LiveEventMonitor />
             </Card>
           </div>
         </SSEErrorBoundary>

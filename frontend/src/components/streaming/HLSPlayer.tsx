@@ -160,10 +160,12 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({
         } else {
           throw new Error("HLS is not supported on this browser.");
         }
-      } catch (e: any) {
-        console.error("Player initialization error:", e);
+      } catch (e: unknown) {
+        const errorInstance =
+          e instanceof Error ? e : new Error(String(e ?? "Unknown error"));
+        console.error("Player initialization error:", errorInstance);
         setError("Could not initialize video player.");
-        if (onError) onError(e instanceof Error ? e : new Error(String(e)));
+        if (onError) onError(errorInstance);
         setIsLoading(false);
       }
     };

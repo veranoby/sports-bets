@@ -55,22 +55,17 @@ const AdminVenuesPage: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const params: any = {
-        limit: 1000,
-        role: "venue",
-      };
-
-      const res = await userAPI.getAll(params);
-      if (res.success) {
-        const users = (res.data as any)?.users || [];
-        const data = users.map((user: UserType) => ({
-          user: user,
-        }));
-        setCombinedData(data || []);
-      } else {
+      const res = await userAPI.getAll({ limit: 1000, role: "venue" });
+      if (!res.success) {
         throw new Error(res.error || "Failed to load venues");
       }
-    } catch (err) {
+
+      const users = res.data?.users ?? [];
+      const data = users.map((user) => ({
+        user,
+      }));
+      setCombinedData(data);
+    } catch (err: unknown) {
       setError(
         err instanceof Error ? err.message : "An unknown error occurred",
       );
@@ -88,10 +83,9 @@ const AdminVenuesPage: React.FC = () => {
     try {
       const response = await adminAPI.getActiveUsers();
       if (response.success && response.data) {
-        const activeIds = (response.data as any)?.activeUserIds || [];
-        setOnlineUserIds(new Set(activeIds));
+        setOnlineUserIds(new Set(response.data.activeUserIds || []));
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error fetching online status:", error);
     }
   }, []);
@@ -146,7 +140,7 @@ const AdminVenuesPage: React.FC = () => {
           user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
           (user.email &&
             user.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-          ((user.profileInfo as any)?.venueName || "")
+          (user.profileInfo?.venueName || "")
             .toLowerCase()
             .includes(searchTerm.toLowerCase());
 
@@ -424,7 +418,7 @@ const AdminVenuesPage: React.FC = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredData.map(({ user }) => {
                 const profile = user.profileInfo || {};
-                const venueName = (profile as any).venueName || user.username;
+                const venueName = profile?.venueName || user.username;
                 return (
                   <tr key={user.id}>
                     <td className="px-6 py-4 whitespace-nowrap">

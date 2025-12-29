@@ -26,6 +26,37 @@ export interface ApiError extends Error {
   code?: string;
 }
 
+export interface MonitoringAlert {
+  id: string;
+  level: "critical" | "warning" | "info";
+  service: string;
+  message: string;
+  timestamp: string;
+  resolved: boolean;
+}
+
+export interface SystemStats {
+  timestamp: string;
+  activeUsers: number;
+  liveEvents: number;
+  activeBets: number;
+  connectionCount: number;
+  requestsPerMinute: number;
+  errorRate: number;
+  memory: {
+    currentMB: number;
+    limitMB: number;
+    percentUsed: number;
+  };
+  database: {
+    activeConnections: number;
+    availableConnections: number;
+    queuedRequests: number;
+    totalConnections: number;
+    status: string;
+  };
+}
+
 export interface User {
   id: string;
   username: string;

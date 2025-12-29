@@ -31,6 +31,36 @@ import SearchInput from "../../components/shared/SearchInput";
 // Tipos
 import type { EventData } from "../../types";
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
+const isEventData = (value: unknown): value is EventData =>
+  isRecord(value) &&
+  typeof value.id === "string" &&
+  typeof value.name === "string" &&
+  typeof value.status === "string";
+
+const extractEvents = (payload: unknown): EventData[] => {
+  if (Array.isArray(payload)) {
+    return payload.filter(isEventData);
+  }
+
+  if (!isRecord(payload)) {
+    return [];
+  }
+
+  const events = payload.events;
+  if (Array.isArray(events)) {
+    return events.filter(isEventData);
+  }
+
+  if (isEventData(payload)) {
+    return [payload];
+  }
+
+  return [];
+};
+
 // Memoizar EventCard para evitar re-renders innecesarios
 const EventCard = React.memo(
   ({
@@ -182,10 +212,9 @@ const EventsPage: React.FC = () => {
           eventsAPI.getAll({ category: "past", limit: 20 }),
         ]);
 
-        const upcomingList =
-          (upcomingRes.data as { events?: any[] }).events || [];
-        const liveList = (liveRes.data as { events?: any[] }).events || [];
-        const pastList = (pastRes.data as { events?: any[] }).events || [];
+        const upcomingList = extractEvents(upcomingRes.data);
+        const liveList = extractEvents(liveRes.data);
+        const pastList = extractEvents(pastRes.data);
 
         // Combinar live + upcoming para la primera sección, eliminando duplicados por ID
         const combinedUpcoming = [...liveList, ...upcomingList];

@@ -145,9 +145,7 @@ export default function UserBets() {
   const handleProposalAccepted = useCallback((data: ProposalAcceptedData) => {
     setBetsRef.current((prev) =>
       prev.map((bet) =>
-        bet.id === data.proposalId
-          ? { ...bet, status: "accepted" }
-          : bet,
+        bet.id === data.proposalId ? { ...bet, status: "accepted" } : bet,
       ),
     );
   }, []);
@@ -233,9 +231,7 @@ export default function UserBets() {
   // Filter Active vs History (MUST be before conditional return)
   const activeBetsList = useMemo(
     () =>
-      bets.filter(
-        (bet) => bet.status === "active" || bet.status === "pending",
-      ),
+      bets.filter((bet) => bet.status === "active" || bet.status === "pending"),
     [bets],
   );
   const historyBetsList = useMemo(

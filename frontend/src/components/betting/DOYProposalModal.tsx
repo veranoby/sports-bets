@@ -23,6 +23,15 @@ interface DOYProposalModalProps {
   currentUserId: string;
 }
 
+type DOYFormData = {
+  targetUserId: string;
+  amount: number;
+  proposalAmount: number;
+  side: "red" | "blue";
+  timePrediction: number;
+  roundPrediction: number;
+};
+
 const DOYProposalModal: React.FC<DOYProposalModalProps> = ({
   isOpen,
   onClose,
@@ -31,11 +40,11 @@ const DOYProposalModal: React.FC<DOYProposalModalProps> = ({
   users,
   currentUserId,
 }) => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<DOYFormData>({
     targetUserId: "",
     amount: 0,
     proposalAmount: 0,
-    side: "red" as "red" | "blue",
+    side: "red",
     timePrediction: 0,
     roundPrediction: 0,
   });
@@ -90,14 +99,19 @@ const DOYProposalModal: React.FC<DOYProposalModalProps> = ({
           formData.roundPrediction > 0 ? formData.roundPrediction : undefined,
       });
       onClose();
-    } catch (err: any) {
-      setError(err.message || "Error al crear la propuesta DOY");
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error ? err.message : "Error al crear la propuesta DOY",
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = <K extends keyof DOYFormData>(
+    field: K,
+    value: DOYFormData[K],
+  ) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,

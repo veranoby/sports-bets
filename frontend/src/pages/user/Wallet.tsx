@@ -107,8 +107,6 @@ const Wallet: React.FC = () => {
       // - Withdraw (-): means before this, balance was HIGHER (+ amount)
       // - Bet (-): means before this, balance was HIGHER (+ amount)
       // - Win (+): means before this, balance was LOWER (- amount)
-
-      // Using 'any' cast because transaction types might vary slightly between API responses
       const type = tx.type;
       const amount = tx.amount;
 

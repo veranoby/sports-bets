@@ -10,15 +10,68 @@ import ErrorMessage from "../../components/shared/ErrorMessage";
 import { useAuth } from "../../contexts/AuthContext";
 import type { Article } from "../../types/article";
 
+type SortBy = "newest" | "popular" | "premium";
+type FilterBy = "all" | "premium" | "free";
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
+const isArticle = (value: unknown): value is Article =>
+  isRecord(value) &&
+  typeof value.id === "string" &&
+  typeof value.title === "string" &&
+  typeof value.content === "string" &&
+  typeof value.status === "string" &&
+  typeof value.created_at === "string";
+
+const extractArticles = (payload: unknown): Article[] => {
+  if (Array.isArray(payload)) {
+    return payload.filter(isArticle);
+  }
+
+  if (!isRecord(payload)) {
+    return [];
+  }
+
+  const { articles } = payload;
+  if (Array.isArray(articles)) {
+    return articles.filter(isArticle);
+  }
+
+  if (isArticle(payload)) {
+    return [payload];
+  }
+
+  return [];
+};
+
+const getErrorMessage = (error: unknown): string => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (typeof error === "string") {
+    return error;
+  }
+
+  if (isRecord(error) && typeof error.message === "string") {
+    return error.message;
+  }
+
+  return "Error desconocido al cargar artículos";
+};
+
+const sortOptions: SortBy[] = ["newest", "popular", "premium"];
+const isSortOption = (value: string): value is SortBy =>
+  sortOptions.includes(value as SortBy);
+
 const FeaturedArticles: React.FC = () => {
   const { user } = useAuth();
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<"newest" | "popular" | "premium">(
-    "premium",
-  );
-  const [filterBy, setFilterBy] = useState<"all" | "premium" | "free">("all");
+  const [sortBy, setSortBy] = useState<SortBy>("premium");
+  const [filterBy, setFilterBy] = useState<FilterBy>("all");
 
   const isPremiumUser =
     user?.subscription?.status === "active" &&
@@ -38,8 +91,7 @@ const FeaturedArticles: React.FC = () => {
       });
 
       if (response.success) {
-        const allArticles =
-          (response.data as { articles: Article[] }).articles || [];
+        const allArticles = extractArticles(response.data);
 
         // Filter articles based on premium/free criteria
         let filteredArticles = allArticles;
@@ -62,8 +114,8 @@ const FeaturedArticles: React.FC = () => {
       } else {
         throw new Error(response.error || "Error al cargar artículos");
       }
-    } catch (err: any) {
-      setError(err.message || "Error desconocido al cargar artículos");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -171,7 +223,11 @@ const FeaturedArticles: React.FC = () => {
             <div className="flex gap-2">
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as any)}
+                onChange={(e) => {
+                  if (isSortOption(e.target.value)) {
+                    setSortBy(e.target.value);
+                  }
+                }}
                 className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="premium">Más Recientes Premium</option>

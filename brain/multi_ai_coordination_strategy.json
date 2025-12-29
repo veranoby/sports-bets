@@ -1,21 +1,22 @@
 {
   "📋_TABLE_OF_CONTENTS": {
-    "ai_roles_and_preferences": "Lines 5-35 (READ FIRST - Core Configuration)",
-    "critical_rules": "Lines 36-515 (Non-negotiable Protocols - INCLUDES DIRECTOR_PLANNING_PROTOCOL + AUDIT_METHODOLOGY_PROTOCOL + UI_VERIFICATION_PROTOCOL + SOURCE_VERIFICATION_BEFORE_USAGE_PROTOCOL + PROTOCOL_EXECUTION_DISCIPLINE + IMPLEMENTATION_AND_REPORTING_OPTIMIZATION)",
-    "role_responsibilities": "Lines 398-466",
-    "execution_workflows": "Lines 467-556",
-    "validation_gates": "Lines 557-616",
-    "failure_recovery": "Lines 617-706",
-    "recommended_practices": "Lines 707-896",
-    "business_clarifications": "Lines 897-996",
-    "implementation_and_reporting_framework": "Lines 953-1225 (Git-based evidence, backlog integrity, audit framework)"
+    "ai_roles_and_preferences": "Lines 5-65 (READ FIRST - Core Configuration + HAIKU_EXECUTOR_ALTERNATIVE for cost optimization)",
+    "critical_rules": "Lines 66-600 (Non-negotiable Protocols - INCLUDES DIRECTOR_PLANNING_PROTOCOL + ROLE_AWARENESS_PROTOCOL + EXECUTOR_CODE_CLEANUP_PROTOCOL + AUDIT_METHODOLOGY_PROTOCOL + UI_VERIFICATION_PROTOCOL + SOURCE_VERIFICATION_BEFORE_USAGE_PROTOCOL)",
+    "basic_protocols": "Lines 211-220 (Rule-based discipline for all AIs)",
+    "execution_workflows": "Lines 785-810 (Simulate, validate, checkpoint, role-based pipeline)",
+    "validation_gates": "Lines 811-850 (TypeScript, build, dependency, scope validation)",
+    "failure_recovery": "Lines 851-920 (Build stability, scope violations, git recovery)",
+    "recommended_practices": "Lines 921-1000 (Quality practices, token optimization)",
+    "implementation_and_reporting_framework": "Lines 1100-1570 (Git-based evidence, backlog integrity, audit framework)"
   },
   "metadata": {
-    "version": "5.5",
-    "updated": "2025-12-02",
-    "purpose": "Role-based AI orchestration framework - decoupled, resilient, and future-proof.",
-    "note": "This file is READ-FIRST by all AIs. Core logic is based on ROLES, not specific models. Model selection is a configuration preference.",
+    "version": "5.6",
+    "updated": "2025-12-27",
+    "purpose": "Role-based AI orchestration framework - decoupled, resilient, and future-proof. THIS FILE IS INAMOVIBLE AND INSALTABLE - your optimization baseline for optimal results.",
+    "note": "This file is READ-FIRST by all AIs. Core logic is based on ROLES, not specific models. Model selection is a configuration preference. Executor protocol applies to ALL external AIs (Qwen, Gemini, Haiku, etc).",
     "prompt_files_location": "PROJECT ROOT (director-prompt.json, executor-prompt.json) - Role-based prompts for easier AI access.",
+    "critical_notice": "Executor quality depends 100% on protocol adherence. Deviation from THIS document causes: (1) Code defects, (2) Token waste, (3) Rework cycles. Read COMPLETELY before executing any task.",
+    "changelog_v5.6": "Added EXECUTOR_CODE_CLEANUP_PROTOCOL (mechanical tasks like import cleanup, type fixing) - MANDATORY for all 'cleanup' or 'mechanical removal' tasks. Incident lesson: 2025-12-19 Phase 4B cleanup: Qwen created code_garbage (_unused variables), invented names, skipped validation. Phase 4E cleanup: Strict validation gates + incremental commits + grep verification required. Added HAIKU_EXECUTOR_ALTERNATIVE for cost optimization when ultra-specific guide exists.",
     "changelog_v5.5": "Added SOURCE_VERIFICATION_BEFORE_USAGE_PROTOCOL (lines 401-515) - MANDATORY: Read source definition before destructuring/using external functions/hooks/types. Prevents assumption-based errors (loading vs isLoading). Incident lesson: 2025-12-02 Gemini's 95% correct implementation broken by 1-word property name typo. Universal protocol for all external reference usage.",
     "changelog_v5.4": "Added IMPLEMENTATION_AND_REPORTING_OPTIMIZATION_FRAMEWORK (lines 953-1225) - MANDATORY git commit evidence for all work reports. Prevents temporal mismatches and false feature claims. Based on 2025-11-27 Opción B Audit: 47 claims verified, 95.7% accuracy. Establishes git_commits field requirement, temporal validation protocol, backlog integrity standards, and bidirectional audit framework. Zero tolerance: No backlog updates without git evidence after 2025-11-27.",
     "changelog_v5.3": "Added UI_VERIFICATION_PROTOCOL (lines 283-396) - Prevents false affirmations about UI implementation. MANDATORY: Read .tsx/.jsx component files before claiming UI displays data. Never infer rendering from backend/hooks/interfaces alone. Incident lesson: 2025-11-27 SystemHealthBadge metrics claim without reading component JSX.",
@@ -38,7 +39,28 @@
         "qwen3-coder-plus-2025-09-23",
         "gemini-2.0-flash-thinking-exp"
       ],
-      "forbidden_models": []
+      "forbidden_models": [],
+      "cost_optimization_note": "For mechanical tasks (code cleanup, lint fixes, import removal) with ULTRA-SPECIFIC written protocols (>500 words of step-by-step guidance): Claude Haiku can replace Qwen. Haiku costs ~85% less while maintaining protocol adherence if instructions are explicit enough. Example: 'EXECUTOR_CODE_CLEANUP_PROTOCOL' - Haiku can execute this if given the exact protocol file."
+    },
+    "🔴_HAIKU_EXECUTOR_ALTERNATIVE": {
+      "severity": "OPTIONAL_FOR_COST_OPTIMIZATION",
+      "when_applicable": "Tasks that are LOW complexity, MECHANICAL (not creative), and have ULTRA_SPECIFIC written protocol (>500 words of step-by-step detail)",
+      "example_use_cases": [
+        "Code cleanup (import removal, linting, type fixing)",
+        "Mechanical refactoring with clear rules",
+        "Batch file changes with predetermined pattern",
+        "Validation and verification tasks with checklist"
+      ],
+      "not_applicable": [
+        "Architecture decisions (needs Sonnet/Opus)",
+        "Bug diagnosis and root cause analysis (needs reasoning)",
+        "Complex integrations (needs multi-step planning)",
+        "Novel code patterns (needs creativity)"
+      ],
+      "protocol_requirement": "Director MUST provide Haiku with: (1) Exact protocol file (>500 words), (2) Examples of correct/incorrect work, (3) Validation checklist, (4) Forbidden patterns list",
+      "cost_savings": "~85% less token cost than Qwen for same work when protocol is ultra-specific",
+      "risk": "If protocol is vague, Haiku will fail faster than Qwen. Only use Haiku if protocol is CRYSTAL CLEAR",
+      "note": "This is a cost optimization option, not a replacement for Qwen. Director decides based on task clarity and protocol specificity."
     }
   },
   "execution_mode": {
@@ -148,6 +170,42 @@
       "Proceed"
     ],
     "enforcement": "If an AI is assigned a role it cannot fulfill, or fails to declare its role and model, the user must interrupt and restart the session."
+  },
+  "🔴_EXECUTOR_CODE_CLEANUP_PROTOCOL": {
+    "severity": "CRITICAL_FOR_MECHANICAL_TASKS",
+    "applicability": "ALL cleanup, removal, or mechanical refactoring tasks (import removal, linting, type fixing, dead code removal, lint warning elimination)",
+    "principle": "Mechanical tasks LOOK simple but REQUIRE strict discipline. Deviation creates code garbage, breaks builds, wastes tokens.",
+    "incident_lessons": [
+      "2025-12-19 Phase 4B: Qwen created '_unused' variables instead of removing unused, invented new variable names, skipped validation, created code garbage",
+      "2025-12-27 Phase 4E: Gemini succeeded with ultra-specific protocol (8KB+ guidance), validation gates, grep verification, incremental commits"
+    ],
+    "mandatory_rules": {
+      "rule_1_grep_first": "NEVER remove/change code without grep verification it's actually unused: grep -rn 'variable_name' src/",
+      "rule_2_validate_always": "After EVERY edit, validate: npx tsc --noEmit (must be 0 errors). NEVER skip. If fails → REVERT immediately",
+      "rule_3_no_garbage": "NO '_unused', '_temp', '_deleted', or invented variable names. NO comments like '// removed feature'. Pure removal only",
+      "rule_4_incremental_commits": "Commit after 10-25 files max (not 50). Small commits = easy rollback if something breaks",
+      "rule_5_read_completely": "Read ENTIRE file before modifying. Don't scan - read it all. Variables may be used in unexpected places",
+      "rule_6_no_creative_freedom": "Follow protocol EXACTLY. No 'improvements' beyond scope. Protocol = law for this task"
+    },
+    "forbidden_patterns": [
+      "Creating new variables to replace removed ones (defeats purpose)",
+      "Inventing property/variable names that don't exist in code",
+      "Changing logic or functionality (cleanup only = removal, no enhancement)",
+      "Skipping validation because 'it looks fine'",
+      "Large batch commits (hard to debug if something breaks)",
+      "eslint-disable comments (no lint suppression allowed)",
+      "TODO comments indicating incomplete work",
+      "Assuming patterns without code verification"
+    ],
+    "validation_checklist": [
+      "✅ grep shows variable/import truly unused in entire codebase",
+      "✅ npx tsc --noEmit returns 0 errors after edit",
+      "✅ git diff shows ONLY removal (no other changes)",
+      "✅ Commit message references exact file:line cleaned",
+      "✅ No '_unused', '_temp', garbage variable names created",
+      "✅ No new code added (pure removal only)"
+    ],
+    "protocol_template_for_director": "When delegating cleanup to executor, provide: (1) Exact type of cleanup (imports, variables, dead code, linting), (2) Files to focus on, (3) This EXECUTOR_CODE_CLEANUP_PROTOCOL as reference, (4) Validation steps required, (5) Commit frequency (every 10-25 files)"
   },
   "🔴_BASIC_PROTOCOL_ALL_AIS": {
     "severity": "CRITICAL",

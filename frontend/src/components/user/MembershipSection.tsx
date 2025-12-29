@@ -21,6 +21,58 @@ interface Subscription {
   membership_type?: string | null; // Keep for backward compatibility
 }
 
+type MembershipRequestStatus = "pending" | "completed" | "rejected";
+type MembershipRequestType = "24-hour" | "monthly" | (string & {});
+
+interface MembershipRequestHistoryEntry {
+  id: string;
+  requestedMembershipType: MembershipRequestType;
+  status: MembershipRequestStatus;
+  requestedAt: string;
+  processedAt?: string;
+  requestNotes?: string;
+  rejectionReason?: string;
+}
+
+interface MembershipRequestListPayload {
+  requests: MembershipRequestHistoryEntry[];
+  total?: number;
+  limit?: number;
+  offset?: number;
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
+const isMembershipRequest = (
+  value: unknown,
+): value is MembershipRequestHistoryEntry => {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    typeof value.id === "string" &&
+    typeof value.requestedMembershipType === "string" &&
+    typeof value.status === "string" &&
+    typeof value.requestedAt === "string"
+  );
+};
+
+const isMembershipRequestListPayload = (
+  value: unknown,
+): value is MembershipRequestListPayload => {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  const { requests } = value;
+  return Array.isArray(requests) && requests.every(isMembershipRequest);
+};
+
+const getErrorMessage = (err: unknown): string =>
+  err instanceof Error ? err.message : "Ocurrió un error desconocido.";
+
 interface MembershipSectionProps {
   subscription: Subscription | null | undefined;
   user: User | null;
@@ -197,8 +249,8 @@ const RequestChangeModal: React.FC<{
           response.error || "Ocurrió un error al crear la solicitud.",
         );
       }
-    } catch (err: any) {
-      setError(err.message || "Ocurrió un error desconocido.");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -390,7 +442,7 @@ const MembershipSection: React.FC<MembershipSectionProps> = ({
   user,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [requests, setRequests] = useState<any[]>([]);
+  const [requests, setRequests] = useState<MembershipRequestHistoryEntry[]>([]);
   const [loadingRequests, setLoadingRequests] = useState(false);
   const currentStatus = subscription?.status || "expired";
   const config = statusConfig[currentStatus];
@@ -411,10 +463,10 @@ const MembershipSection: React.FC<MembershipSectionProps> = ({
     setLoadingRequests(true);
     try {
       const response = await membershipRequestsAPI.getMyRequests();
-      if (response.success && response.data) {
-        setRequests((response.data as any).requests || []);
+      if (response.success && isMembershipRequestListPayload(response.data)) {
+        setRequests(response.data.requests);
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Error fetching requests:", err);
     } finally {
       setLoadingRequests(false);
@@ -561,7 +613,7 @@ const MembershipSection: React.FC<MembershipSectionProps> = ({
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {requests.map((request: any) => (
+                {requests.map((request) => (
                   <tr key={request.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-sm text-gray-900">
                       {new Date(request.requestedAt).toLocaleDateString(

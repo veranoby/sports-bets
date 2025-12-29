@@ -21,6 +21,36 @@ import Badge from "../../components/shared/Badge";
 // ✅ AGREGADO: Import del componente premium
 import LiveEventsWidget from "../../components/user/LiveEventsWidget";
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
+const isEventData = (value: unknown): value is EventData =>
+  isRecord(value) &&
+  typeof value.id === "string" &&
+  typeof value.name === "string" &&
+  typeof value.status === "string";
+
+const extractEvents = (payload: unknown): EventData[] => {
+  if (Array.isArray(payload)) {
+    return payload.filter(isEventData);
+  }
+
+  if (!isRecord(payload)) {
+    return [];
+  }
+
+  const events = payload.events;
+  if (Array.isArray(events)) {
+    return events.filter(isEventData);
+  }
+
+  if (isEventData(payload)) {
+    return [payload];
+  }
+
+  return [];
+};
+
 const UserDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -46,7 +76,7 @@ const UserDashboard: React.FC = () => {
       try {
         const response = await eventsAPI.getAll({ dateRange: "today" });
         if (response.success && response.data) {
-          setTodayEvents((response.data as { events?: any[] }).events || []);
+          setTodayEvents(extractEvents(response.data));
         }
       } catch (error) {
         console.error("Error loading today's events:", error);
@@ -60,8 +90,7 @@ const UserDashboard: React.FC = () => {
       try {
         const response = await eventsAPI.getAll({ category: "upcoming" });
         if (response.success && response.data) {
-          const eventsArray =
-            (response.data as { events?: any[] }).events || [];
+          const eventsArray = extractEvents(response.data);
           const today = new Date();
           const filtered = eventsArray.filter((event) => {
             if (!event?.scheduledDate) return true;

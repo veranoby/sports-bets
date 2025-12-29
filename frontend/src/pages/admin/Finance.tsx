@@ -25,11 +25,7 @@ import { walletAPI } from "../../config/api";
 import {
   WalletOperation,
   WalletOperationStats,
-  CreateDepositData,
-  CreateWithdrawalData,
-  ApproveOperationData,
-  CompleteOperationData,
-  RejectOperationData,
+  WalletOperationFilters,
 } from "../../types/walletOperation";
 
 // Componentes específicos
@@ -39,11 +35,14 @@ import ApproveWithdrawalModal from "../../components/admin/ApproveWithdrawalModa
 import RejectOperationModal from "../../components/admin/RejectOperationModal";
 import WalletOperationFilters from "../../components/admin/WalletOperationFilters";
 
+type ActiveTab = "deposits" | "withdrawals" | "history";
+
+const getErrorMessage = (err: unknown, fallback: string): string =>
+  err instanceof Error ? err.message : fallback;
+
 const AdminFinancePage: React.FC = () => {
   // Estados principales
-  const [activeTab, setActiveTab] = useState<
-    "deposits" | "withdrawals" | "history"
-  >("deposits");
+  const [activeTab, setActiveTab] = useState<ActiveTab>("deposits");
   const [operations, setOperations] = useState<WalletOperation[]>([]);
   const [stats, setStats] = useState<WalletOperationStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -58,11 +57,11 @@ const AdminFinancePage: React.FC = () => {
     useState<WalletOperation | null>(null);
 
   // Filtros
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<WalletOperationFilters>({
     status: "pending",
+    type: "deposit",
     dateFrom: "",
     dateTo: "",
-    type: "deposit" as "deposit" | "withdrawal",
   });
 
   // Cargar datos iniciales
@@ -78,9 +77,11 @@ const AdminFinancePage: React.FC = () => {
       }
 
       // Cargar operaciones según pestaña activa
-      const params: any = { status: filters.status || "pending" };
-      if (filters.dateFrom) params.dateFrom = filters.dateFrom;
-      if (filters.dateTo) params.dateTo = filters.dateTo;
+      const params: WalletOperationFilters = {
+        status: filters.status || "pending",
+        dateFrom: filters.dateFrom || undefined,
+        dateTo: filters.dateTo || undefined,
+      };
 
       // Filtrar por tipo según la pestaña activa
       if (activeTab === "deposits") {
@@ -97,9 +98,13 @@ const AdminFinancePage: React.FC = () => {
       if (operationsRes.success) {
         setOperations(operationsRes.data.operations || []);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error loading wallet operations:", err);
-      setError(err.message || "Error al cargar operaciones de wallet");
+      const message = getErrorMessage(
+        err,
+        "Error al cargar operaciones de wallet",
+      );
+      setError(message);
       toast.error("Error al cargar operaciones de wallet");
     } finally {
       setLoading(false);
@@ -112,7 +117,7 @@ const AdminFinancePage: React.FC = () => {
   }, [activeTab, filters]);
 
   // Manejar filtros
-  const handleFilterChange = (newFilters: any) => {
+  const handleFilterChange = (newFilters: WalletOperationFilters) => {
     setFilters((prev) => ({ ...prev, ...newFilters }));
   };
 
@@ -172,7 +177,7 @@ const AdminFinancePage: React.FC = () => {
       // Cerrar modal
       setShowApproveDepositModal(false);
       setShowApproveWithdrawalModal(false);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error approving operation:", err);
       toast.error("Error al aprobar operación");
     }
@@ -196,7 +201,7 @@ const AdminFinancePage: React.FC = () => {
 
       // Cerrar modal
       setShowApproveWithdrawalModal(false);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error completing operation:", err);
       toast.error("Error al completar operación");
     }
@@ -220,7 +225,7 @@ const AdminFinancePage: React.FC = () => {
 
       // Cerrar modal
       setShowRejectModal(false);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error rejecting operation:", err);
       toast.error("Error al rechazar operación");
     }

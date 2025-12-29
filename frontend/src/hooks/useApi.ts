@@ -426,6 +426,27 @@ export function useBets() {
     [execute],
   );
 
+  const updateBet = useCallback(
+    (
+      betId: string,
+      betData: {
+        amount?: number;
+        side?: "red" | "blue";
+        betType?: "flat" | "doy";
+        terms?: {
+          ratio?: number;
+          isOffer?: boolean;
+          pagoAmount?: number;
+          doyAmount?: number;
+          proposedBy?: string;
+        };
+      },
+    ) => {
+      return execute(() => apiClient.put(`/bets/${betId}`, betData));
+    },
+    [execute],
+  );
+
   const acceptBet = useCallback(
     async (betId: string) => {
       const response = await execute(() =>
@@ -501,6 +522,7 @@ export function useBets() {
     getPendingProposals,
     acceptPago,
     rejectPago,
+    updateBet,
   };
 }
 

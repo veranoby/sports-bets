@@ -25,6 +25,102 @@ interface StreamingEvent {
   currentViewers: number;
 }
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
+type StreamingEventSource = {
+  id: string;
+  title?: string;
+  name?: string;
+  status?: string;
+  scheduledAt?: string;
+  createdAt?: string;
+  currentViewers?: number;
+};
+
+const STREAMING_STATUSES: StreamingEvent["status"][] = [
+  "scheduled",
+  "betting",
+  "live",
+  "completed",
+  "intermission",
+];
+
+const isStreamingStatus = (value: unknown): value is StreamingEvent["status"] =>
+  typeof value === "string" &&
+  STREAMING_STATUSES.includes(value as StreamingEvent["status"]);
+
+const isStreamingEventSource = (
+  value: unknown,
+): value is StreamingEventSource => {
+  if (!isRecord(value) || typeof value.id !== "string") {
+    return false;
+  }
+
+  return (
+    (value.title === undefined || typeof value.title === "string") &&
+    (value.name === undefined || typeof value.name === "string") &&
+    (value.status === undefined || typeof value.status === "string") &&
+    (value.scheduledAt === undefined ||
+      typeof value.scheduledAt === "string") &&
+    (value.createdAt === undefined || typeof value.createdAt === "string") &&
+    (value.currentViewers === undefined ||
+      typeof value.currentViewers === "number")
+  );
+};
+
+const mapToStreamingEvent = (value: unknown): StreamingEvent | null => {
+  if (!isStreamingEventSource(value)) {
+    return null;
+  }
+
+  const status = isStreamingStatus(value.status)
+    ? value.status
+    : ("scheduled" satisfies StreamingEvent["status"]);
+
+  const scheduledTime =
+    typeof value.scheduledAt === "string"
+      ? value.scheduledAt
+      : typeof value.createdAt === "string"
+        ? value.createdAt
+        : new Date().toISOString();
+
+  return {
+    id: value.id,
+    name: value.title || value.name || "Evento sin nombre",
+    status,
+    scheduledTime,
+    currentViewers:
+      typeof value.currentViewers === "number" ? value.currentViewers : 0,
+  };
+};
+
+interface StreamAccessPayload {
+  streamUrl?: string;
+  hlsUrl?: string;
+}
+
+interface StreamAccessResponse {
+  success: boolean;
+  data?: StreamAccessPayload | null;
+  error?: string;
+}
+
+const isStreamAccessPayload = (value: unknown): value is StreamAccessPayload =>
+  isRecord(value) &&
+  (value.streamUrl === undefined || typeof value.streamUrl === "string") &&
+  (value.hlsUrl === undefined || typeof value.hlsUrl === "string");
+
+const isStreamAccessResponse = (
+  value: unknown,
+): value is StreamAccessResponse =>
+  isRecord(value) &&
+  typeof value.success === "boolean" &&
+  (value.error === undefined || typeof value.error === "string") &&
+  (value.data === undefined ||
+    value.data === null ||
+    isStreamAccessPayload(value.data));
+
 const OptimizedStreamingMonitor: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<string>("");
   const [isStreamPlaying, setIsStreamPlaying] = useState(false);
@@ -54,15 +150,9 @@ const OptimizedStreamingMonitor: React.FC = () => {
 
         if (response.success && Array.isArray(response.data)) {
           // Transform the response to match our StreamingEvent interface
-          const transformedEvents: StreamingEvent[] = response.data.map(
-            (event: any) => ({
-              id: event.id,
-              name: event.title || event.name,
-              status: event.status,
-              scheduledTime: event.scheduledAt || event.createdAt,
-              currentViewers: event.currentViewers || 0, // This might come from a different source
-            }),
-          );
+          const transformedEvents = response.data
+            .map(mapToStreamingEvent)
+            .filter((event): event is StreamingEvent => event !== null);
 
           setEvents(transformedEvents);
 
@@ -119,7 +209,7 @@ const OptimizedStreamingMonitor: React.FC = () => {
           const apiBaseUrl =
             import.meta.env.VITE_API_URL?.replace("/api", "") ||
             "http://localhost:3001";
-          const response: any = await fetch(
+          const response = await fetch(
             `${apiBaseUrl}/api/events/${selectedEvent}/stream-access`,
             {
               headers: {
@@ -130,8 +220,8 @@ const OptimizedStreamingMonitor: React.FC = () => {
           );
 
           if (response.ok) {
-            const data = await response.json();
-            if (data.success && data.data) {
+            const data = (await response.json()) as unknown;
+            if (isStreamAccessResponse(data) && data.success && data.data) {
               setStreamUrl(data.data.streamUrl || data.data.hlsUrl);
             } else {
               console.error("Failed to get stream access:", data.error);

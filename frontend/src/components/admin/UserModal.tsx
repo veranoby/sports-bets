@@ -10,7 +10,7 @@ import type { User } from "../../types";
 import { adminAPI } from "../../services/api"; // Added for balance adjustment
 import ConfirmDialog from "../shared/ConfirmDialog"; // Added for balance adjustment confirmation
 
-type UserRole = "operator" | "venue" | "gallera" | "user";
+type UserRole = "admin" | "operator" | "venue" | "gallera" | "user";
 type FormMode = "create" | "edit";
 type ActiveTab = "profile" | "subscription" | "balance"; // Added 'balance'
 

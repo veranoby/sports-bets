@@ -26,7 +26,12 @@ export interface MonitoringAlertData {
     };
     intervals: {
       activeCount: number;
-      details: any[];
+      details: Array<{
+        id?: string;
+        name?: string;
+        durationMs?: number;
+        startedAt?: string;
+      }>;
     };
     adminSSE: {
       activeConnections: number;
@@ -99,9 +104,13 @@ const useMonitoringAlerts = (): UseMonitoringAlertsReturn => {
         setWarningAlerts(0);
         setMetrics(null);
       }
-    } catch (fetchError: any) {
+    } catch (fetchError: unknown) {
       console.error("❌ Fetch alerts error:", fetchError);
-      setError(fetchError.message || "Error fetching monitoring alerts");
+      setError(
+        fetchError instanceof Error
+          ? fetchError.message
+          : "Error fetching monitoring alerts",
+      );
       setAlertCount(0);
       setCriticalAlerts(0);
       setWarningAlerts(0);
@@ -163,9 +172,13 @@ const useMonitoringAlerts = (): UseMonitoringAlertsReturn => {
           } else {
             console.error("❌ SSE: Invalid monitoring data format");
           }
-        } catch (parseError: any) {
+        } catch (parseError: unknown) {
           console.error(`❌ SSE: Monitoring parse error`, parseError);
-          setError(`Parse error: ${parseError.message}`);
+          setError(
+            parseError instanceof Error
+              ? `Parse error: ${parseError.message}`
+              : "Parse error",
+          );
         }
       };
 
@@ -186,9 +199,13 @@ const useMonitoringAlerts = (): UseMonitoringAlertsReturn => {
           } else {
             console.error("❌ SSE: Invalid monitoring-update format");
           }
-        } catch (parseError: any) {
+        } catch (parseError: unknown) {
           console.error(`❌ SSE: Monitoring-update parse error`, parseError);
-          setError(`Parse error: ${parseError.message}`);
+          setError(
+            parseError instanceof Error
+              ? `Parse error: ${parseError.message}`
+              : "Parse error",
+          );
         }
       });
 
@@ -210,9 +227,11 @@ const useMonitoringAlerts = (): UseMonitoringAlertsReturn => {
           }
         }, delay);
       };
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error(`❌ SSE: Monitoring - EventSource error:`, e);
-      setError(e.message || "Error creating SSE connection");
+      setError(
+        e instanceof Error ? e.message : "Error creating SSE connection",
+      );
       if (mountedRef.current) {
         setLoading(false);
       }

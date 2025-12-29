@@ -51,6 +51,42 @@ interface ProcessRequestPayload {
   processNotes?: string;
 }
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
+const isWithdrawalRequest = (value: unknown): value is WithdrawalRequest => {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    typeof value.id === "string" &&
+    typeof value.userId === "string" &&
+    typeof value.amount === "number" &&
+    typeof value.status === "string" &&
+    typeof value.accountNumber === "string" &&
+    typeof value.requestedAt === "string" &&
+    isRecord(value.user) &&
+    typeof value.user.username === "string" &&
+    typeof value.user.email === "string"
+  );
+};
+
+const extractWithdrawalRequests = (payload: unknown): WithdrawalRequest[] => {
+  if (Array.isArray(payload)) {
+    return payload.filter(isWithdrawalRequest);
+  }
+
+  if (isRecord(payload)) {
+    const maybeRequests = payload["requests"];
+    if (Array.isArray(maybeRequests)) {
+      return maybeRequests.filter(isWithdrawalRequest);
+    }
+  }
+
+  return [];
+};
+
 const AdminRequestsPage: React.FC = () => {
   const [searchParams] = useSearchParams();
 
@@ -90,7 +126,7 @@ const AdminRequestsPage: React.FC = () => {
     });
 
     if (response.success) {
-      setRequests((response.data as any)?.requests || []);
+      setRequests(extractWithdrawalRequests(response.data));
     } else {
       setError(response.error || "Error loading requests");
     }

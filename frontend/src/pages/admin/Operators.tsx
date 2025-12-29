@@ -36,10 +36,8 @@ const AdminOperatorsPage: React.FC = () => {
     setLoading(true);
     setError(null);
     const res = await usersAPI.getAll({ role: "operator", limit: 1000 });
-    console.log("API Response for operators:", res); // Debug log
-    console.log("Users data from API:", (res.data as any)?.users); // Debug log
     if (res.success) {
-      setOperators((res.data as any)?.users || []);
+      setOperators(res.data?.users ?? []);
     } else {
       setError(res.error || "Error loading operators");
     }

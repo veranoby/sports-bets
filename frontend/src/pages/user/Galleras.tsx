@@ -36,21 +36,97 @@ interface GalleraProfile {
   premiumLevel?: "bronze" | "silver" | "gold" | "platinum";
 }
 
-interface GalleraUser {
-  id: string;
-  username: string;
-  profileInfo?: {
-    galleraName?: string;
-    description?: string;
-    location?: string;
-    imageUrl?: string;
-    establishedDate?: string;
-    certified?: boolean;
-    rating?: number;
-    specialties?: string[];
-    premiumLevel?: "bronze" | "silver" | "gold" | "platinum";
-  };
-}
+type RawGallera = Record<string, unknown>;
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
+const getString = (value: unknown): string | undefined =>
+  typeof value === "string" ? value : undefined;
+
+const getNumber = (value: unknown): number | undefined =>
+  typeof value === "number" ? value : undefined;
+
+const getBoolean = (value: unknown): boolean | undefined =>
+  typeof value === "boolean" ? value : undefined;
+
+const getStringArray = (value: unknown): string[] | undefined => {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+  return value.filter((item): item is string => typeof item === "string");
+};
+
+const getRecord = (value: unknown): Record<string, unknown> | null =>
+  isRecord(value) ? value : null;
+
+const getPremiumLevel = (
+  value: unknown,
+): GalleraProfile["premiumLevel"] | undefined => {
+  if (
+    value === "bronze" ||
+    value === "silver" ||
+    value === "gold" ||
+    value === "platinum"
+  ) {
+    return value;
+  }
+  return undefined;
+};
+
+const extractGalleraUsers = (payload: unknown): RawGallera[] => {
+  if (isRecord(payload) && Array.isArray(payload.users)) {
+    return payload.users
+      .filter((user): user is RawGallera => isRecord(user))
+      .map((user) => user as RawGallera);
+  }
+
+  return [];
+};
+
+const getArticlesTotal = (payload: unknown): number => {
+  if (!isRecord(payload)) {
+    return 0;
+  }
+
+  if (typeof payload.total === "number") {
+    return payload.total;
+  }
+
+  if (Array.isArray(payload.articles)) {
+    return payload.articles.length;
+  }
+
+  return 0;
+};
+
+const getSpecialties = (value: unknown): string[] | undefined => {
+  if (Array.isArray(value)) {
+    return value.filter((item): item is string => typeof item === "string");
+  }
+
+  if (typeof value === "string") {
+    return [value];
+  }
+
+  return undefined;
+};
+
+const getErrorMessage = (error: unknown): string => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (typeof error === "string") {
+    return error;
+  }
+
+  if (isRecord(error) && typeof error.message === "string") {
+    return error.message;
+  }
+
+  return "Error al cargar los criaderos. Inténtalo de nuevo más tarde.";
+};
 
 // Enhanced Gallera Card Component - Following Events page sophistication with premium levels
 const GalleraCard = React.memo(
@@ -270,54 +346,70 @@ const GallerasPage: React.FC = () => {
       const gallerasData = await gallerasAPI.getAll();
       if (gallerasData.success) {
         // Get their articles
+        const rawGalleras = extractGalleraUsers(gallerasData.data);
         const galleraProfiles = await Promise.all(
-          ((gallerasData.data as { users: any[] })?.users || []).map(
-            async (gallera: any) => {
-              const articles = await articlesAPI.getAll({
-                author_id: gallera.owner?.id || gallera.id,
-              });
-              const articleCount = articles.success
-                ? (articles.data as any)?.total || 0
-                : 0;
+          rawGalleras.map(async (galleraRecord) => {
+            const galleraId = getString(galleraRecord.id);
+            if (!galleraId) {
+              return null;
+            }
 
-              // Extract specialties from transformed response (via owner.profileInfo)
-              let specialties: string[] = [];
-              if (gallera.owner?.profileInfo?.galleraSpecialties) {
-                specialties = Array.isArray(
-                  gallera.owner.profileInfo.galleraSpecialties,
-                )
-                  ? gallera.owner.profileInfo.galleraSpecialties
-                  : [gallera.owner.profileInfo.galleraSpecialties];
-              }
+            const ownerRecord = getRecord(galleraRecord.owner);
+            const ownerId = getString(ownerRecord?.id) || galleraId;
 
-              return {
-                id: gallera.id,
-                name: gallera.name || "Criadero sin nombre",
-                description: gallera.description || "Información no disponible",
-                location: gallera.location || "Ubicación no especificada",
-                imageUrl: gallera.profileImage,
-                ownerImage: gallera.profileImage,
-                galleryImages: gallera.images || [],
-                articlesCount: articleCount,
-                establishedDate: gallera.createdAt,
-                isCertified:
-                  gallera.owner?.profileInfo?.verificationLevel === "full" ||
-                  false,
-                rating: gallera.owner?.profileInfo?.rating || 0,
-                specialties: specialties,
-                premiumLevel: gallera.owner?.profileInfo?.premiumLevel,
-              };
-            },
+            const articles = await articlesAPI.getAll({
+              author_id: ownerId,
+            });
+
+            const articleCount = articles.success
+              ? getArticlesTotal(articles.data)
+              : 0;
+
+            const profileInfo = getRecord(ownerRecord?.profileInfo);
+            const verificationLevel = profileInfo?.verificationLevel;
+            const isCertified =
+              verificationLevel === "full"
+                ? true
+                : (getBoolean(profileInfo?.verificationLevel) ?? false);
+
+            const rating = getNumber(profileInfo?.rating) ?? 0;
+            const premiumLevel = getPremiumLevel(profileInfo?.premiumLevel);
+            const specialties =
+              getSpecialties(profileInfo?.galleraSpecialties) ?? [];
+
+            return {
+              id: galleraId,
+              name: getString(galleraRecord.name) || "Criadero sin nombre",
+              description:
+                getString(galleraRecord.description) ||
+                "Información no disponible",
+              location:
+                getString(galleraRecord.location) ||
+                "Ubicación no especificada",
+              imageUrl: getString(galleraRecord.profileImage),
+              ownerImage: getString(galleraRecord.profileImage),
+              galleryImages: getStringArray(galleraRecord.images) || [],
+              articlesCount: articleCount,
+              establishedDate: getString(galleraRecord.createdAt),
+              isCertified,
+              rating,
+              specialties,
+              premiumLevel,
+            } satisfies GalleraProfile;
+          }),
+        );
+        setGalleras(
+          galleraProfiles.filter(
+            (profile): profile is GalleraProfile => profile !== null,
           ),
         );
-        setGalleras(galleraProfiles);
       } else {
         setError(
           "Error al cargar los criaderos. Inténtalo de nuevo más tarde.",
         );
       }
-    } catch (err) {
-      setError("Error al cargar los criaderos. Inténtalo de nuevo más tarde.");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err));
       console.error("Error loading galleras:", err);
     } finally {
       setLoading(false);

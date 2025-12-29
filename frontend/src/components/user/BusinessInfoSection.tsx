@@ -9,11 +9,25 @@ import {
   Globe,
   Edit3,
 } from "lucide-react";
-import type { Venue, Gallera } from "../../types";
+
+export interface BusinessInfoSectionData {
+  name?: string | null;
+  location?: string | null;
+  description?: string | null;
+  status?: string | null;
+  certified?: boolean | null;
+  images?: string[] | null;
+  contactInfo?: {
+    email?: string | null;
+    phone?: string | null;
+    website?: string | null;
+    address?: string | null;
+  } | null;
+}
 
 interface BusinessInfoSectionProps {
   type: "venue" | "gallera";
-  data: Venue | Gallera | null;
+  data: BusinessInfoSectionData | null;
   onEdit?: () => void;
 }
 
@@ -59,8 +73,6 @@ const BusinessInfoSection: React.FC<BusinessInfoSectionProps> = ({
       </div>
     );
   }
-
-  const isGallera = (d: any): d is Gallera => type === "gallera";
 
   const title =
     type === "venue" ? "Información de la Gallera" : "Información del Criadero";

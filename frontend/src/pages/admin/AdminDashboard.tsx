@@ -57,6 +57,36 @@ interface SystemFeatures {
   loading: boolean;
 }
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
+interface MembershipRequestSummary {
+  status: string;
+}
+
+interface MembershipRequestsPayload {
+  requests: MembershipRequestSummary[];
+}
+
+const isMembershipRequestSummary = (
+  value: unknown,
+): value is MembershipRequestSummary =>
+  isRecord(value) && typeof value.status === "string";
+
+const extractPendingMemberships = (value: unknown): number => {
+  if (!isRecord(value)) {
+    return 0;
+  }
+
+  const requests = value.requests;
+  if (!Array.isArray(requests)) {
+    return 0;
+  }
+
+  const validRequests = requests.filter(isMembershipRequestSummary);
+  return validRequests.filter((request) => request.status === "pending").length;
+};
+
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [metrics, setMetrics] = useState<DashboardMetrics>({
@@ -190,16 +220,6 @@ const AdminDashboard: React.FC = () => {
         0,
       );
 
-      // Membership metrics - fetch all then filter locally
-      let pendingMemberships: any[] = [];
-      if (membershipRequestsData.success) {
-        const membershipRequests =
-          (membershipRequestsData.data as { requests: any[] }).requests || [];
-        pendingMemberships = membershipRequests.filter(
-          (r) => r.status === "pending",
-        );
-      }
-
       setMetrics({
         eventsToday: eventsData.success
           ? (eventsData.data as { total: number }).total || 0
@@ -222,7 +242,9 @@ const AdminDashboard: React.FC = () => {
         todayRevenue: financeData.success
           ? (financeData.data as { todayRevenue: number }).todayRevenue || 0
           : 0,
-        pendingMembershipRequests: pendingMemberships.length,
+        pendingMembershipRequests: membershipRequestsData.success
+          ? extractPendingMemberships(membershipRequestsData.data)
+          : 0,
       });
 
       setLastRefresh(new Date());

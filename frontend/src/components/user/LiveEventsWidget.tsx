@@ -9,17 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { useEvents } from "../../hooks/useApi";
 import { useWebSocketListener } from "../../hooks/useWebSocket";
 import LoadingSpinner from "../shared/LoadingSpinner";
-
-// Assuming EventData from useApi matches what we need, otherwise defining partial here for safety
-interface EventData {
-  id: string;
-  name: string;
-  status: string;
-  scheduledDate: string;
-  venue?: { name?: string; location?: string } | Record<string, any>;
-  currentViewers?: number;
-  activeBets?: number;
-}
+import type { EventData } from "../../types";
 
 // ✅ COMPONENTE MEMOIZADO - EventCard Premium
 const PremiumEventCard = memo(({ event }: { event: EventData }) => {
@@ -31,8 +21,8 @@ const PremiumEventCard = memo(({ event }: { event: EventData }) => {
 
   // Extract venue name safely
   const venueName =
-    (event.venue as any)?.name ||
-    (event.venue as any)?.profileInfo?.venueName ||
+    event.venue?.profileInfo?.venueName ||
+    event.venue?.name ||
     "Gallera Desconocida";
 
   return (

@@ -9,35 +9,47 @@ import SSEErrorBoundary from "../../components/admin/SSEErrorBoundary";
 // APIs
 import { eventsAPI } from "../../config/api";
 
+type EventAction =
+  | "schedule"
+  | "activate"
+  | "start-stream"
+  | "stop-stream"
+  | "complete"
+  | "cancel";
+
 const EventsPage: React.FC = () => {
   const navigate = useNavigate();
   const { id: eventId } = useParams<{ id: string }>();
+  const [operationInProgress, setOperationInProgress] = useState<string | null>(
+    null,
+  );
+  const [error, setError] = useState<string | null>(null);
 
   const handleEventAction = async (
-    eventId: string,
-    action: string,
-  ): Promise<any> => {
+    targetEventId: string,
+    action: EventAction,
+  ): Promise<Event | undefined> => {
     try {
-      setOperationInProgress(`${eventId}-${action}`);
+      setOperationInProgress(`${targetEventId}-${action}`);
       let response;
       switch (action) {
         case "schedule":
-          response = await eventsAPI.updateStatus(eventId, "schedule");
+          response = await eventsAPI.updateStatus(targetEventId, "schedule");
           break;
         case "activate":
-          response = await eventsAPI.updateStatus(eventId, "activate");
+          response = await eventsAPI.updateStatus(targetEventId, "activate");
           break;
         case "start-stream":
-          response = await eventsAPI.startStream(eventId);
+          response = await eventsAPI.startStream(targetEventId);
           break;
         case "stop-stream":
-          response = await eventsAPI.stopStream(eventId);
+          response = await eventsAPI.stopStream(targetEventId);
           break;
         case "complete":
-          response = await eventsAPI.updateStatus(eventId, "complete");
+          response = await eventsAPI.updateStatus(targetEventId, "complete");
           break;
         case "cancel":
-          response = await eventsAPI.updateStatus(eventId, "cancel");
+          response = await eventsAPI.updateStatus(targetEventId, "cancel");
           break;
       }
       console.log("🔧 EventsPage response from API:", response);

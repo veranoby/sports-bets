@@ -1,126 +1,773 @@
 {
-  "metadata": {
-    "task_name": "UX_Logic_Fix_LiveEvent_AdminControl",
-    "complexity": "MEDIUM",
-    "execution_mode": "standard",
-    "assigned_role": "executor",
-    "estimated_time": "35-40",
-    "git_branch": "fix/ux-betting-flow"
-  },
-  "analysis_verification_report": {
-    "executed_by": "Director AI & Claude 3.7",
-    "date": "2025-12-19",
-    "findings": [
-      {
-        "component": "LiveEvent.tsx",
-        "issue": "CRITICAL LOGIC BUG: 'currentFight' selector only finds 'live' status.",
-        "evidence": "Code analysis confirmed 'allFights.find(f => f.status === \"live\")'.",
-        "required_fix": "Update selector with explicit precedence: Live > Betting."
-      },
-      {
-        "component": "LiveEvent.tsx",
-        "issue": "UX SECURITY RISK: Betting buttons remain enabled during 'live' fight.",
-        "evidence": "BettingPanel render condition relies only on feature flag.",
-        "required_fix": "Inject 'isBettingOpen' prop into BettingPanel and disable buttons."
-      },
-      {
-        "component": "EventDetail.tsx",
-        "issue": "WORKFLOW GAP: Admin controls allow jumping statuses illogically.",
-        "required_fix": "Refactor to sequential state-based rendering (Pending -> Open -> Close -> End)."
-      }
-    ],
-    "recommendation": "Execute logic fixes (P0) before UI polish (P2). Adhere strictly to the provided code patterns."
-  },
-  "critical_protocols": {
-    "session_start_declaration": "Executor AI MUST declare: Model: [model] | Role: executor | Mode: standard",
-    "mcp_activation_mandatory": "Activate --c7 (React/TS)",
-    "simulate_confirm_protocol": "REQUIRED: Simulate logic changes for 'currentFight' selector before applying.",
-    "no_file_creation": "Modify existing files only.",
-    "infinite_loop_prevention": "Do not modify useSSE hooks, only the UI logic consuming the data."
-  },
-  "reference_files_read_first": [
-    "frontend/src/pages/user/LiveEvent.tsx",
-    "frontend/src/components/admin/events/EventDetail.tsx",
-    "frontend/src/types/index.ts"
-  ],
-  "step_by_step_implementation": {
-    "step_1": {
-      "action": "Fix 'currentFight' logic bug in LiveEvent.tsx with Precedence",
-      "file": "frontend/src/pages/user/LiveEvent.tsx",
-      "location": "Line 921 - currentFight selector",
-      "purpose": "CRITICAL P0: Ensure correct fight is selected. Priority: Live > Betting.",
-      "current_code": "const currentFight = allFights.find((fight) => fight.status === \"live\");",
-      "required_change": "const currentFight = allFights.find((f) => f.status === \"live\") || allFights.find((f) => f.status === \"betting\");",
-      "precedence_logic": "Priority: 'live' > 'betting' > null. If multiple fights exist, 'live' takes precedence.",
-      "simulate": "Test selector with mock data: [{status: 'betting'}, {status: 'live'}] should return 'live' fight.",
-      "confirm_before_creating": "Read file to confirm current selector at line 921.",
-      "validate_after_creation": "Ensure 'Pelea Actual' header renders for BOTH 'betting' and 'live' statuses."
-    },
-    "step_2": {
-      "action": "Implement Secure Locking for BettingPanel",
-      "file": "frontend/src/pages/user/LiveEvent.tsx",
-      "location": "Lines 1133-1143 - BettingPanel component render",
-      "purpose": "CRITICAL P0: Prevent betting when status is not 'betting'.",
-      "current_logic": "BettingPanel renders if isBettingEnabled is true (feature flag only).",
-      "required_change": "Add 'isOpen={currentFight?.status === \"betting\"}' prop to BettingPanel.",
-      "implementation_detail": "BettingPanel component must receive isOpen prop and apply 'disabled' attribute to all bet action buttons when isOpen=false.",
-      "button_locations": "Verify BettingPanel buttons ('PAGO', 'DOY') are disabled when fight status !== 'betting'.",
-      "simulate": "1. Pass 'isBettingOpen={currentFight?.status === \"betting\"}' to BettingPanel. 2. In BettingPanel, update buttons: 'disabled={!isBettingOpen}'.",
-      "confirm_before_creating": "Read BettingPanel component to check if it accepts 'isOpen' or 'disabled' prop.",
-      "validate_after_creation": "Test: When status changes 'betting' -> 'live', buttons must immediately disable."
-    },
-    "step_3": {
-      "action": "Consolidate Fight Controls in EventDetail.tsx (Admin)",
-      "file": "frontend/src/components/admin/events/EventDetail.tsx",
-      "location": "Lines 968-985 - Fight control buttons section",
-      "purpose": "HIGH P1: Enforce sequential workflow preventing state jumping.",
-      "current_problem": "Independent buttons allow jumping states (upcoming -> live, skipping betting phase).",
-      "required_logic": "Conditional rendering based on selectedFight.status",
-      "state_flow_rules": {
-        "upcoming": "Show 'ABRIR APUESTAS' button only",
-        "betting": "Show 'CERRAR APUESTAS' button only",
-        "live": "Show 'FINALIZAR PELEA' button only",
-        "completed": "Show 'ARCHIVAR' or no action buttons"
-      },
-      "implementation_example": "if (status === 'upcoming') { render openBetsButton } else if (status === 'betting') { render closeBetsButton } else if (status === 'live') { render finalizeFightButton }",
-      "simulate": "Mock selectedFight with status='upcoming', verify only 'ABRIR APUESTAS' button visible.",
-      "confirm_before_creating": "Read 'Monitor de Pelea Actual' section at lines 968-985 to identify all button handlers.",
-      "validate_after_creation": "Verify admin CANNOT skip 'betting' phase when going from 'upcoming' to 'live'."
-    },
-    "step_4": {
-      "action": "Add Visual State Overlays in LiveEvent.tsx",
-      "file": "frontend/src/pages/user/LiveEvent.tsx",
-      "purpose": "MEDIUM P2: Improve UX feedback for state transitions.",
-      "implementation_detail": "Create status banner component that renders above BettingPanel based on 'currentFight.status'.",
-      "banner_states": {
-        "betting": "Green banner: 'APUESTAS ABIERTAS'",
-        "live": "Red banner: 'APUESTAS CERRADAS - PELEA EN CURSO'",
-        "completed": "Gray banner: 'PELEA FINALIZADA'"
-      },
-      "simulate": "Add conditional rendering: if (status === 'betting') show green banner, else if (status === 'live') show red banner.",
-      "confirm_before_creating": "Identify insertion point in JSX above BettingPanel component.",
-      "validate_after_creation": "Check rendering for 'betting', 'live', and 'completed' states with proper colors."
-    }
-  },
-  "success_criteria": {
-    "P0_critical_blocking": [
-      "currentFight selector finds BOTH 'betting' and 'live' statuses (Step 1)",
-      "Betting buttons are DISABLED when currentFight.status !== 'betting' (Step 2)",
-      "Zero TypeScript errors (npx tsc --noEmit)"
-    ],
-    "P1_important_non_blocking": [
-      "'Pelea Actual' header appears for both 'betting' AND 'live' statuses",
-      "Admin controls enforce sequential state flow (Step 3)",
-      "Admin cannot jump from 'upcoming' -> 'live' without 'betting' phase",
-      "State transitions are immediate (no lag between SSE event and UI update)"
-    ],
-    "P2_nice_to_have": [
-      "Visual overlay ('APUESTAS CERRADAS') appears during 'live' fight (Step 4)",
-      "Status banner shows clear messaging for 'betting', 'live', 'completed' states"
+  "project": "Sports Bets Platform - Betting UX Optimization",
+  "task_id": "BETTING_UX_REFACTOR_V2",
+  "priority": "P0_CRITICAL",
+  "estimated_duration": "1.5-2 weeks",
+  "assigned_to": "GEMINI (Frontend) + SONNET (Backend + Migrations)",
+  "execution_mode": "STANDARD (full validation gates)",
+
+  "⚠️_CRITICAL_NOTICE": "THIS IS A MULTI-PHASE REFACTOR. Backend changes MUST be completed and validated BEFORE frontend work begins. User will execute SQL migrations manually.",
+
+  "objectives": {
+    "primary": "Decouple betting control from fight status, enable granular admin control, improve UX",
+    "secondary": [
+      "Eliminate WebSocket complexity from betting (use SSE only)",
+      "Simplify betting to fixed amounts [5,10,20,50,100,200,500]",
+      "Remove DOY/PAGO bet types (obsolete with fixed amounts)",
+      "Add owner/breeder info to fights",
+      "Enable pre-opening betting windows hours before event",
+      "Implement absolute closure (no cron jobs)",
+      "Unify video players (eliminate HLSPlayer, keep VideoPlayer only)"
     ]
   },
-  "error_handling": {
-    "typescript_errors": "Stop and fix types if Fight status enum mismatches.",
-    "logic_conflict": "Prioritize fight status over global feature flags for safety."
-  }
+
+  "architecture_changes": {
+    "separation_of_concerns": {
+      "before": "Fight.status controlled BOTH fight state AND betting window",
+      "after": "Fight.status = fight physical state | Fight.bettingStatus = betting window control",
+      "benefit": "Admin can close betting BEFORE fight starts, preventing opportunistic bets during video latency"
+    },
+    "state_machines": {
+      "fight_status": {
+        "states": ["scheduled", "prepared", "in-fighting", "completed", "cancelled"],
+        "transitions": {
+          "scheduled -> prepared": "Admin 'enables' fight (makes it current/visible)",
+          "prepared -> in-fighting": "Admin marks fight as actively fighting",
+          "in-fighting -> completed": "Admin ends fight + declares winner",
+          "any -> cancelled": "Admin cancels fight"
+        }
+      },
+      "betting_status": {
+        "states": ["closed", "open", "locked"],
+        "transitions": {
+          "closed -> open": "Admin opens betting window (can be hours before fight)",
+          "open -> locked": "Admin closes betting OR auto-lock on in-fighting",
+          "locked -> closed": "Auto-close when fight completes"
+        },
+        "critical_rule": "Once 'locked', betting cannot reopen for that fight"
+      }
+    }
+  },
+
+  "simplifications": {
+    "fixed_bet_amounts": {
+      "allowed_values": [5, 10, 20, 50, 100, 200, 500],
+      "rationale": "Eliminates complex matching logic, panel suggestions, ratio calculations",
+      "matching_logic": "EXACT amount match only: if (bet1.amount === bet2.amount && bet1.side !== bet2.side) → AUTO-MATCH",
+      "ui_change": "Dropdown selector instead of free input"
+    },
+    "bet_types_removal": {
+      "removed": ["doy", "pago"],
+      "kept": ["flat"],
+      "rationale": "DOY/PAGO complexity not justified with fixed amounts. All bets are symmetric.",
+      "code_deletion": [
+        "Remove DOY creation logic",
+        "Remove PAGO proposal flow",
+        "Remove timeout tracking",
+        "Remove bet.terms.ratio, bet.terms.doyAmount, bet.terms.pagoAmount"
+      ]
+    },
+    "websocket_elimination": {
+      "before": "WebSocket for real-time bet matching + PAGO proposals",
+      "after": "SSE for betting window notifications only",
+      "events_to_keep": ["betting_opened", "betting_locked", "fight_started", "fight_completed"],
+      "events_to_remove": ["bet_matched", "pago_proposal", "bet_update"],
+      "benefit": "40% less real-time complexity, easier scaling"
+    },
+    "absolute_closure": {
+      "trigger": "Admin clicks 'Close Betting' button",
+      "action": "Single UPDATE query expires all pending bets atomically",
+      "no_cron_needed": true,
+      "query": "UPDATE bets SET status='expired', cancelled_at=NOW() WHERE fight_id=$1 AND status='pending'"
+    }
+  },
+
+  "schema_changes": {
+    "fights_table": {
+      "new_columns": [
+        {
+          "name": "betting_status",
+          "type": "VARCHAR(20)",
+          "default": "'closed'",
+          "constraint": "CHECK (betting_status IN ('closed', 'open', 'locked'))",
+          "indexed": true,
+          "rationale": "Decouples betting control from fight status"
+        },
+        {
+          "name": "red_owner",
+          "type": "VARCHAR(255)",
+          "nullable": true,
+          "rationale": "Display owner/breeder name for red rooster"
+        },
+        {
+          "name": "blue_owner",
+          "type": "VARCHAR(255)",
+          "nullable": true,
+          "rationale": "Display owner/breeder name for blue rooster"
+        }
+      ],
+      "index_additions": [
+        "CREATE INDEX idx_fights_betting_status ON fights(betting_status)",
+        "CREATE INDEX idx_fights_event_betting ON fights(event_id, betting_status) WHERE betting_status='open'"
+      ]
+    },
+    "bets_table": {
+      "constraint_removals": [
+        {
+          "name": "bets_fight_id_user_id_key",
+          "type": "UNIQUE",
+          "rationale": "Allow multiple bets per user per fight (user can cancel and recreate)"
+        }
+      ],
+      "new_columns": [
+        {
+          "name": "cancelled_at",
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "rationale": "Track when bet was cancelled/expired for auditing"
+        }
+      ],
+      "column_removals_consideration": [
+        "terms.doyAmount (DOY eliminated)",
+        "terms.pagoAmount (PAGO eliminated)",
+        "terms.ratio (all bets 1:1 with fixed amounts)",
+        "proposalStatus (no more proposals)"
+      ],
+      "amount_constraint_change": {
+        "before": "DECIMAL(10,2) with min 0.01, max 10000",
+        "after": "INTEGER with CHECK (amount IN (5,10,20,50,100,200,500))"
+      }
+    }
+  },
+
+  "sql_migrations": {
+    "⚠️_EXECUTION_INSTRUCTIONS": "User will execute these SQL statements manually in pgAdmin. DO NOT execute via code. Provide as separate deliverable.",
+    "migration_01_add_betting_status": {
+      "description": "Add betting_status column to fights table",
+      "sql": [
+        "-- Step 1: Add column with default",
+        "ALTER TABLE fights ADD COLUMN betting_status VARCHAR(20) DEFAULT 'closed' NOT NULL;",
+        "",
+        "-- Step 2: Add check constraint",
+        "ALTER TABLE fights ADD CONSTRAINT fights_betting_status_check CHECK (betting_status IN ('closed', 'open', 'locked'));",
+        "",
+        "-- Step 3: Add index",
+        "CREATE INDEX idx_fights_betting_status ON fights(betting_status);",
+        "CREATE INDEX idx_fights_event_betting ON fights(event_id, betting_status) WHERE betting_status='open';",
+        "",
+        "-- Step 4: Set existing fights based on current status",
+        "UPDATE fights SET betting_status = CASE",
+        "  WHEN status = 'betting' THEN 'open'",
+        "  WHEN status = 'live' THEN 'locked'",
+        "  ELSE 'closed'",
+        "END;"
+      ],
+      "rollback": [
+        "DROP INDEX IF EXISTS idx_fights_event_betting;",
+        "DROP INDEX IF EXISTS idx_fights_betting_status;",
+        "ALTER TABLE fights DROP CONSTRAINT IF EXISTS fights_betting_status_check;",
+        "ALTER TABLE fights DROP COLUMN IF EXISTS betting_status;"
+      ]
+    },
+    "migration_02_add_owner_info": {
+      "description": "Add owner/breeder columns to fights",
+      "sql": [
+        "-- Add owner columns",
+        "ALTER TABLE fights ADD COLUMN red_owner VARCHAR(255);",
+        "ALTER TABLE fights ADD COLUMN blue_owner VARCHAR(255);"
+      ],
+      "rollback": [
+        "ALTER TABLE fights DROP COLUMN IF EXISTS blue_owner;",
+        "ALTER TABLE fights DROP COLUMN IF EXISTS red_owner;"
+      ]
+    },
+    "migration_03_bets_multi_bet_support": {
+      "description": "Remove unique constraint to allow multiple bets per user per fight",
+      "sql": [
+        "-- Step 1: Drop unique constraint",
+        "ALTER TABLE bets DROP CONSTRAINT IF EXISTS bets_fight_id_user_id_key;",
+        "",
+        "-- Step 2: Add cancelled_at column",
+        "ALTER TABLE bets ADD COLUMN cancelled_at TIMESTAMP;",
+        "",
+        "-- Step 3: Add index for active bets queries",
+        "CREATE INDEX idx_bets_user_fight_active ON bets(user_id, fight_id, status) WHERE status IN ('pending', 'active');"
+      ],
+      "rollback": [
+        "DROP INDEX IF EXISTS idx_bets_user_fight_active;",
+        "ALTER TABLE bets DROP COLUMN IF EXISTS cancelled_at;",
+        "-- NOTE: Cannot restore unique constraint if multiple bets exist"
+      ]
+    },
+    "migration_04_simplify_bet_amounts": {
+      "description": "Change amount to INTEGER with fixed values",
+      "⚠️_WARNING": "This is a breaking change. Must be done during maintenance window with no active bets.",
+      "sql": [
+        "-- Step 1: Check no active/pending bets exist",
+        "DO $$",
+        "BEGIN",
+        "  IF EXISTS (SELECT 1 FROM bets WHERE status IN ('pending', 'active')) THEN",
+        "    RAISE EXCEPTION 'Cannot migrate: active/pending bets exist. Complete or cancel them first.';",
+        "  END IF;",
+        "END $$;",
+        "",
+        "-- Step 2: Add new column",
+        "ALTER TABLE bets ADD COLUMN amount_new INTEGER;",
+        "",
+        "-- Step 3: Migrate data (round existing amounts to nearest allowed value)",
+        "UPDATE bets SET amount_new = CASE",
+        "  WHEN amount < 7.5 THEN 5",
+        "  WHEN amount < 15 THEN 10",
+        "  WHEN amount < 35 THEN 20",
+        "  WHEN amount < 75 THEN 50",
+        "  WHEN amount < 150 THEN 100",
+        "  WHEN amount < 350 THEN 200",
+        "  ELSE 500",
+        "END;",
+        "",
+        "-- Step 4: Drop old column and rename",
+        "ALTER TABLE bets DROP COLUMN amount;",
+        "ALTER TABLE bets RENAME COLUMN amount_new TO amount;",
+        "",
+        "-- Step 5: Add constraint",
+        "ALTER TABLE bets ADD CONSTRAINT bets_amount_check CHECK (amount IN (5,10,20,50,100,200,500));",
+        "",
+        "-- Step 6: Update potential_win to match (1:1 ratio)",
+        "UPDATE bets SET potential_win = amount * 2;"
+      ],
+      "rollback": "⚠️ NOT REVERSIBLE - data loss would occur"
+    }
+  },
+
+  "backend_changes": {
+    "models": {
+      "Fight_model_updates": {
+        "file": "backend/src/models/Fight.ts",
+        "changes": [
+          {
+            "type": "add_column",
+            "field": "bettingStatus",
+            "datatype": "ENUM('closed', 'open', 'locked')",
+            "default": "'closed'"
+          },
+          {
+            "type": "add_column",
+            "field": "redOwner",
+            "datatype": "STRING(255)",
+            "nullable": true
+          },
+          {
+            "type": "add_column",
+            "field": "blueOwner",
+            "datatype": "STRING(255)",
+            "nullable": true
+          },
+          {
+            "type": "update_method",
+            "method": "canAcceptBets()",
+            "before": "return this.status === 'betting' && ...",
+            "after": "return this.bettingStatus === 'open' && ..."
+          },
+          {
+            "type": "add_method",
+            "method": "canCloseBetting()",
+            "logic": "return this.bettingStatus === 'open'"
+          },
+          {
+            "type": "add_method",
+            "method": "closeBetting()",
+            "logic": "if (canCloseBetting()) this.bettingStatus = 'locked'"
+          }
+        ]
+      },
+      "Bet_model_updates": {
+        "file": "backend/src/models/Bet.ts",
+        "changes": [
+          {
+            "type": "update_column",
+            "field": "amount",
+            "before": "DECIMAL(10,2)",
+            "after": "INTEGER with CHECK constraint"
+          },
+          {
+            "type": "add_column",
+            "field": "cancelledAt",
+            "datatype": "DATE",
+            "nullable": true
+          },
+          {
+            "type": "remove_fields",
+            "fields": ["betType (keep only 'flat')", "proposalStatus", "terms.doyAmount", "terms.pagoAmount", "terms.ratio"]
+          },
+          {
+            "type": "simplify_validation",
+            "remove": "DOY/PAGO validations in hooks"
+          }
+        ]
+      }
+    },
+    "services": {
+      "betService_refactor": {
+        "file": "backend/src/services/betService.ts",
+        "changes": [
+          {
+            "function": "createBet()",
+            "remove": [
+              "Unique constraint check (lines 65-76)",
+              "Ratio calculations",
+              "DOY/PAGO term validations"
+            ],
+            "add": [
+              "Amount validation against ALLOWED_AMOUNTS array",
+              "Check bettingStatus instead of fight.status"
+            ],
+            "simplified_logic": "if (fight.bettingStatus !== 'open') throw error"
+          },
+          {
+            "function": "getCompatibleBets()",
+            "remove": "±20% range calculation (lines 157-174)",
+            "replace_with": "EXACT amount match only: where.amount = amount"
+          },
+          {
+            "function": "REMOVE_ENTIRELY",
+            "functions": [
+              "createPagoProposal()",
+              "acceptPago()",
+              "rejectPago()",
+              "createDoyBet()",
+              "expirePagoProposals() - no longer needed"
+            ]
+          },
+          {
+            "function": "NEW: cancelBet()",
+            "logic": "Allow user to cancel own pending bet if betting still open",
+            "validation": [
+              "bet.userId === requestUserId",
+              "bet.status === 'pending'",
+              "fight.bettingStatus === 'open'",
+              "UPDATE bet SET status='cancelled', cancelled_at=NOW()"
+            ]
+          },
+          {
+            "function": "NEW: closeBettingForFight()",
+            "logic": "Admin closes betting, expire all pending bets atomically",
+            "sql": "UPDATE bets SET status='expired', cancelled_at=NOW() WHERE fight_id=$1 AND status='pending'; UPDATE fights SET betting_status='locked' WHERE id=$1"
+          }
+        ]
+      },
+      "fightService_new_methods": {
+        "file": "backend/src/services/fightService.ts (create if not exists)",
+        "new_functions": [
+          {
+            "name": "openBetting(fightId)",
+            "logic": "Set fight.bettingStatus='open'",
+            "validation": "fight.status IN ('scheduled', 'prepared')"
+          },
+          {
+            "name": "closeBetting(fightId)",
+            "logic": "Set fight.bettingStatus='locked', expire pending bets",
+            "validation": "fight.bettingStatus='open'"
+          },
+          {
+            "name": "updateFightStatus(fightId, newStatus)",
+            "auto_lock_betting": "IF newStatus='in-fighting' THEN auto-set bettingStatus='locked'"
+          }
+        ]
+      }
+    },
+    "routes": {
+      "bets_routes_simplification": {
+        "file": "backend/src/routes/bets.ts",
+        "remove_endpoints": [
+          "POST /bets/:betId/pago-proposal",
+          "POST /bets/:betId/accept-pago",
+          "POST /bets/:betId/reject-pago"
+        ],
+        "add_endpoints": [
+          {
+            "method": "DELETE",
+            "path": "/bets/:betId",
+            "handler": "betService.cancelBet(betId, userId)",
+            "description": "User cancels their own pending bet"
+          }
+        ],
+        "modify_endpoints": [
+          {
+            "path": "POST /bets",
+            "change": "Add amount validation against ALLOWED_AMOUNTS",
+            "validation": "if (!ALLOWED_AMOUNTS.includes(amount)) throw 400"
+          },
+          {
+            "path": "GET /bets/suggestions",
+            "simplify": "Remove ±20% logic, exact match only"
+          }
+        ]
+      },
+      "fights_routes_additions": {
+        "file": "backend/src/routes/fights.ts",
+        "add_endpoints": [
+          {
+            "method": "PATCH",
+            "path": "/fights/:fightId/betting/open",
+            "handler": "fightService.openBetting(fightId)",
+            "auth": "admin/operator only",
+            "description": "Admin opens betting window for fight"
+          },
+          {
+            "method": "PATCH",
+            "path": "/fights/:fightId/betting/close",
+            "handler": "fightService.closeBetting(fightId)",
+            "auth": "admin/operator only",
+            "description": "Admin closes betting, expires pending bets"
+          }
+        ]
+      }
+    },
+    "websocket_removal": {
+      "file": "backend/src/sockets/bettingSocket.ts",
+      "action": "DELETE ENTIRE FILE",
+      "rationale": "No longer needed with SSE-only approach"
+    },
+    "sse_simplification": {
+      "keep_events": [
+        "betting_opened (when admin opens window)",
+        "betting_locked (when admin closes or fight starts)",
+        "fight_started (status -> in-fighting)",
+        "fight_completed (status -> completed)"
+      ],
+      "remove_events": [
+        "bet_matched (no real-time matching needed)",
+        "pago_proposal_received",
+        "bet_update"
+      ]
+    }
+  },
+
+  "frontend_changes": {
+    "⚠️_AI_ASSIGNMENT": "GEMINI will handle frontend with ultra-specific protocol",
+    "components_to_modify": {
+      "BettingPanel": {
+        "file": "frontend/src/components/user/BettingPanel.tsx",
+        "changes": [
+          {
+            "element": "Amount input",
+            "before": "Free text input with validation",
+            "after": "<select> dropdown with options [5,10,20,50,100,200,500]"
+          },
+          {
+            "remove": "DOY/PAGO toggle buttons",
+            "replace_with": "Single 'Place Bet' button"
+          },
+          {
+            "add": "Cancel button for pending bets",
+            "condition": "Show if user has pending bet AND bettingStatus='open'"
+          },
+          {
+            "update": "Suggestions panel",
+            "before": "Shows ±20% range matches",
+            "after": "Shows exact amount matches only"
+          }
+        ]
+      },
+      "FightCard_admin": {
+        "file": "frontend/src/components/admin/events/EventDetail.tsx or FightCard.tsx",
+        "add_ui_elements": [
+          {
+            "element": "Owner/breeder display",
+            "format": "Red: {redCorner} ({redOwner}) vs Blue: {blueCorner} ({blueOwner})"
+          },
+          {
+            "element": "Fight status chip",
+            "states": {
+              "scheduled": "gray chip 'Programada'",
+              "prepared": "blue chip 'Habilitada'",
+              "in-fighting": "red chip 'Peleando'",
+              "completed": "green chip 'Completada'"
+            }
+          },
+          {
+            "element": "Betting status chip",
+            "states": {
+              "closed": "gray chip 'Apuestas Cerradas'",
+              "open": "green chip 'Apuestas Abiertas'",
+              "locked": "orange chip 'Apuestas Bloqueadas'"
+            }
+          }
+        ]
+      },
+      "FightsControlTab": {
+        "file": "frontend/src/components/admin/FightsControlTab.tsx",
+        "add_controls": [
+          {
+            "button": "Abrir Apuestas",
+            "condition": "bettingStatus='closed' AND status IN ('scheduled', 'prepared')",
+            "action": "PATCH /fights/:id/betting/open"
+          },
+          {
+            "button": "Cerrar Apuestas",
+            "condition": "bettingStatus='open'",
+            "action": "PATCH /fights/:id/betting/close",
+            "confirm": "¿Cerrar apuestas? Todas las apuestas pendientes se cancelarán."
+          },
+          {
+            "field": "Owner inputs",
+            "add": "Two text inputs for redOwner and blueOwner when creating/editing fight"
+          }
+        ]
+      },
+      "CreateFightModal": {
+        "file": "frontend/src/components/admin/CreateFightModal.tsx",
+        "add_fields": [
+          {
+            "field": "redOwner",
+            "type": "text",
+            "label": "Dueño/Criadero Rojo",
+            "placeholder": "Ej: Don Juan Pérez"
+          },
+          {
+            "field": "blueOwner",
+            "type": "text",
+            "label": "Dueño/Criadero Azul",
+            "placeholder": "Ej: Rancho El Sol"
+          }
+        ]
+      }
+    },
+    "components_to_delete": {
+      "DOYProposalModal": {
+        "file": "frontend/src/components/betting/DOYProposalModal.tsx",
+        "action": "DELETE",
+        "reason": "DOY eliminated"
+      },
+      "PAGOProposalModal": {
+        "file": "frontend/src/components/betting/PAGOProposalModal.tsx",
+        "action": "DELETE",
+        "reason": "PAGO eliminated"
+      },
+      "AcceptPagoModal": {
+        "file": "frontend/src/components/betting/AcceptPagoModal.tsx",
+        "action": "DELETE",
+        "reason": "PAGO eliminated"
+      },
+      "HLSPlayer": {
+        "file": "frontend/src/components/streaming/HLSPlayer.tsx",
+        "action": "DELETE",
+        "reason": "VideoPlayer is more complete, HLSPlayer redundant"
+      }
+    },
+    "hooks_to_update": {
+      "useWebSocket_betting": {
+        "file": "frontend/src/hooks/useWebSocket.ts or similar",
+        "action": "Remove betting-related WebSocket listeners",
+        "keep_only": "SSE listeners for betting_opened, betting_locked events"
+      }
+    },
+    "constants_to_add": {
+      "ALLOWED_BET_AMOUNTS": {
+        "file": "frontend/src/constants/betting.ts (create if not exists)",
+        "value": "[5, 10, 20, 50, 100, 200, 500]",
+        "export": "export const ALLOWED_BET_AMOUNTS = [5, 10, 20, 50, 100, 200, 500]"
+      }
+    }
+  },
+
+  "validation_requirements": {
+    "backend_validation": [
+      "npx tsc --noEmit MUST return 0 errors",
+      "npm run lint MUST return 0 errors (warnings acceptable)",
+      "All tests MUST pass: npm test",
+      "Database migrations MUST be idempotent (can run multiple times safely)",
+      "Rollback scripts MUST be provided for each migration"
+    ],
+    "frontend_validation": [
+      "npx tsc --noEmit MUST return 0 errors",
+      "npm run lint MUST return 0 ESLint errors (warnings <500 acceptable)",
+      "No console.error in production build",
+      "All deleted component imports removed from other files"
+    ],
+    "integration_validation": [
+      "User can create bet with fixed amount",
+      "User can cancel pending bet",
+      "Admin can open betting independently of fight status",
+      "Admin can close betting, all pending bets expire",
+      "Auto-matching works for exact amounts",
+      "Fight shows owner/breeder info in UI",
+      "Status chips display correctly"
+    ]
+  },
+
+  "execution_phases": {
+    "phase_1_backend_migrations": {
+      "duration": "2-3 days",
+      "assigned_to": "SONNET (writes SQL) + USER (executes in pgAdmin)",
+      "deliverables": [
+        "migration_01_add_betting_status.sql",
+        "migration_02_add_owner_info.sql",
+        "migration_03_bets_multi_bet_support.sql",
+        "migration_04_simplify_bet_amounts.sql (BREAKING)"
+      ],
+      "validation": "User confirms schema changes in pgAdmin"
+    },
+    "phase_2_backend_logic": {
+      "duration": "3-4 days",
+      "assigned_to": "SONNET",
+      "tasks": [
+        "Update Fight model with new columns and methods",
+        "Update Bet model, remove DOY/PAGO fields",
+        "Refactor betService: remove DOY/PAGO, simplify matching",
+        "Create fightService with openBetting/closeBetting",
+        "Update routes: add betting control endpoints",
+        "Remove bettingSocket.ts",
+        "Simplify SSE events",
+        "Write unit tests for new logic"
+      ],
+      "validation": "npm test passes, tsc --noEmit 0 errors"
+    },
+    "phase_3_frontend_ui": {
+      "duration": "4-5 days",
+      "assigned_to": "GEMINI",
+      "tasks": [
+        "Delete DOYProposalModal, PAGOProposalModal, AcceptPagoModal, HLSPlayer",
+        "Update BettingPanel: dropdown for amounts, cancel button",
+        "Update FightCard: show owner info, status chips",
+        "Update FightsControlTab: betting open/close buttons, owner inputs",
+        "Update CreateFightModal: add owner fields",
+        "Remove WebSocket betting listeners, keep SSE only",
+        "Add ALLOWED_BET_AMOUNTS constant"
+      ],
+      "validation": "tsc --noEmit 0 errors, lint <500 warnings, manual UI testing"
+    },
+    "phase_4_integration_testing": {
+      "duration": "2 days",
+      "assigned_to": "SONNET + USER",
+      "tasks": [
+        "End-to-end test: create fight, open betting, place bets, close betting",
+        "Test cancellation flow",
+        "Test auto-matching with exact amounts",
+        "Test admin UX for betting control",
+        "Load testing: 50 concurrent bets"
+      ],
+      "validation": "All integration scenarios pass"
+    }
+  },
+
+  "risk_mitigation": {
+    "database_migration_risks": {
+      "risk": "migration_04 is BREAKING (changes amount datatype)",
+      "mitigation": [
+        "Schedule during maintenance window",
+        "Ensure no active/pending bets before running",
+        "Take full database backup",
+        "Test on staging database first",
+        "Provide clear rollback procedure"
+      ]
+    },
+    "backward_compatibility": {
+      "risk": "Existing frontend code expects DOY/PAGO",
+      "mitigation": [
+        "Deploy backend first, frontend second",
+        "Backend maintains bet.betType='flat' compatibility",
+        "Frontend gracefully handles missing DOY/PAGO UI"
+      ]
+    },
+    "user_confusion": {
+      "risk": "Users familiar with old DOY/PAGO system may be confused",
+      "mitigation": [
+        "Add in-app notification explaining changes",
+        "Update help/FAQ section",
+        "Monitor support tickets first week"
+      ]
+    }
+  },
+
+  "success_metrics": {
+    "technical": [
+      "0 TypeScript errors in backend and frontend",
+      "<500 ESLint warnings in frontend",
+      "100% migration success rate",
+      "0 production errors in first 24 hours"
+    ],
+    "functional": [
+      "Admin can open betting hours before fight",
+      "Admin can close betting before fight starts",
+      "User can cancel pending bet",
+      "Exact amount matching works",
+      "Owner info displays correctly"
+    ],
+    "performance": [
+      "Bet creation <200ms",
+      "Betting window open/close <100ms",
+      "Page load time unchanged",
+      "No WebSocket connection overhead for betting"
+    ]
+  },
+
+  "deliverables_checklist": {
+    "sql_files": [
+      "✅ migration_01_add_betting_status.sql (user executes)",
+      "✅ migration_02_add_owner_info.sql (user executes)",
+      "✅ migration_03_bets_multi_bet_support.sql (user executes)",
+      "✅ migration_04_simplify_bet_amounts.sql (user executes CAREFULLY)"
+    ],
+    "backend_files": [
+      "✅ backend/src/models/Fight.ts (updated)",
+      "✅ backend/src/models/Bet.ts (updated)",
+      "✅ backend/src/services/betService.ts (refactored)",
+      "✅ backend/src/services/fightService.ts (new)",
+      "✅ backend/src/routes/bets.ts (simplified)",
+      "✅ backend/src/routes/fights.ts (new endpoints)",
+      "❌ backend/src/sockets/bettingSocket.ts (DELETED)"
+    ],
+    "frontend_files": [
+      "✅ frontend/src/components/user/BettingPanel.tsx (refactored)",
+      "✅ frontend/src/components/admin/FightsControlTab.tsx (updated)",
+      "✅ frontend/src/components/admin/CreateFightModal.tsx (updated)",
+      "✅ frontend/src/constants/betting.ts (new)",
+      "❌ frontend/src/components/betting/DOYProposalModal.tsx (DELETED)",
+      "❌ frontend/src/components/betting/PAGOProposalModal.tsx (DELETED)",
+      "❌ frontend/src/components/betting/AcceptPagoModal.tsx (DELETED)",
+      "❌ frontend/src/components/streaming/HLSPlayer.tsx (DELETED)"
+    ],
+    "documentation": [
+      "✅ Migration execution guide for user",
+      "✅ API endpoint changes documentation",
+      "✅ Frontend UX changes summary"
+    ]
+  },
+
+  "gemini_specific_protocol": {
+    "⚠️_READ_FIRST": "brain/multi_ai_coordination_strategy.json - EXECUTOR_CODE_CLEANUP_PROTOCOL (lines 175-209)",
+    "mandatory_workflow": [
+      "1. Read ENTIRE file before modifying",
+      "2. Make changes per specification above",
+      "3. VALIDATE: npx tsc --noEmit (MUST be 0 errors)",
+      "4. VALIDATE: npm run lint (errors MUST be 0, warnings <500 acceptable)",
+      "5. If validation fails → REVERT changes, analyze error, fix, re-validate",
+      "6. Commit after 10-15 files max",
+      "7. Report completion with validation results"
+    ],
+    "forbidden_actions": [
+      "❌ DO NOT create new interfaces/types unnecessarily",
+      "❌ DO NOT use 'any' type (use proper types from types/index.ts)",
+      "❌ DO NOT skip validation steps",
+      "❌ DO NOT advance if TypeScript compilation fails",
+      "❌ DO NOT modify files outside specified list",
+      "❌ DO NOT add eslint-disable comments"
+    ],
+    "file_deletion_protocol": [
+      "1. Identify all imports of the file to be deleted",
+      "2. Remove those imports from all other files FIRST",
+      "3. VALIDATE compilation after imports removed",
+      "4. THEN delete the file",
+      "5. VALIDATE again after deletion"
+    ]
+  },
+
+  "questions_for_user_before_starting": [
+    "1. Confirm maintenance window for migration_04 (breaking change)?",
+    "2. Staging database available for migration testing?",
+    "3. Backup procedure confirmed before migrations?",
+    "4. Acceptable to proceed with GEMINI for frontend (not Qwen)?",
+    "5. Any additional bet amounts needed beyond [5,10,20,50,100,200,500]?"
+  ]
 }

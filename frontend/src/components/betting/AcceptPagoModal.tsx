@@ -32,6 +32,16 @@ const AcceptPagoModal: React.FC<AcceptPagoModalProps> = ({
     }).format(value);
   };
 
+  const getActionErrorMessage = (err: unknown): string => {
+    if (err instanceof Error && err.message) {
+      return err.message;
+    }
+
+    return `Error al ${
+      action === "accept" ? "aceptar" : "rechazar"
+    } la propuesta PAGO`;
+  };
+
   const handleSubmit = async () => {
     if (!action) return;
 
@@ -39,15 +49,13 @@ const AcceptPagoModal: React.FC<AcceptPagoModalProps> = ({
     setError(null);
 
     try {
-      let response;
-      if (action === "accept") {
-        response = await acceptPago(pagoBet.id);
-      } else {
-        response = await rejectPago(
-          pagoBet.id,
-          "Rechazado por el propietario de la apuesta original",
-        );
-      }
+      const response =
+        action === "accept"
+          ? await acceptPago(pagoBet.id)
+          : await rejectPago(
+              pagoBet.id,
+              "Rechazado por el propietario de la apuesta original",
+            );
 
       if (response.success && response.data) {
         onSuccess(response.data);
@@ -55,15 +63,12 @@ const AcceptPagoModal: React.FC<AcceptPagoModalProps> = ({
       } else {
         throw new Error(response.error || "Error procesando la propuesta");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(
         `Error ${action === "accept" ? "aceptando" : "rechazando"} propuesta PAGO:`,
         err,
       );
-      setError(
-        err.message ||
-          `Error al ${action === "accept" ? "aceptar" : "rechazar"} la propuesta PAGO`,
-      );
+      setError(getActionErrorMessage(err));
     } finally {
       setLoading(false);
     }

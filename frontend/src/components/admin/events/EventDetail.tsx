@@ -31,13 +31,38 @@ import { eventsAPI, fightsAPI, streamingAPI } from "../../../config/api";
 // Types
 import type { Event, Fight } from "../../../types";
 
-interface ExtendedSSEEvent extends SSEEvent<any> {
+interface EventStreamPayload {
+  id?: string;
   eventId?: string;
   streamUrl?: string;
   hlsStatus?: string;
   streamStatus?: string;
   status?: string;
+  type?: string;
 }
+
+const getPayload = (event: SSEEvent<EventStreamPayload>): EventStreamPayload =>
+  event.data ?? {};
+
+const matchesEvent = (
+  event: SSEEvent<EventStreamPayload>,
+  targetId: string,
+): boolean => {
+  const payload = getPayload(event);
+  return (
+    payload.eventId === targetId ||
+    payload.id === targetId ||
+    event.metadata?.eventId === targetId
+  );
+};
+
+const updateEventStatus = (
+  event: SSEEvent<EventStreamPayload>,
+  targetStatus: string,
+) => {
+  const payload = getPayload(event);
+  return payload.status ?? targetStatus;
+};
 
 interface EventDetailProps {
   eventId: string;
@@ -103,7 +128,7 @@ const EventDetail: React.FC<EventDetailProps> = ({
   };
 
   // ✅ SSE Connection using useAdminSSE hook (replaces manual EventSource - eliminates duplicate connection)
-  const adminSSE = useAdminSSE(AdminChannel.GLOBAL);
+  const adminSSE = useAdminSSE<EventStreamPayload>(AdminChannel.GLOBAL);
 
   // Subscribe to event and stream status changes via SSE
   useEffect(() => {
@@ -112,268 +137,211 @@ const EventDetail: React.FC<EventDetailProps> = ({
     const unsubscribe = adminSSE.subscribeToEvents({
       // Event status changes
       EVENT_ACTIVATED: (event) => {
-        if (
-          (event as ExtendedSSEEvent).eventId === eventId ||
-          event.metadata?.eventId === eventId
-        ) {
-          setEventDetailData((prev) => {
-            if (!prev) return null;
-            return {
-              ...prev,
-              event: { ...prev.event, status: (event as ExtendedSSEEvent).status },
-            };
-          });
-        }
+        if (!matchesEvent(event, eventId)) return;
+        setEventDetailData((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            event: {
+              ...prev.event,
+              status: updateEventStatus(event, prev.event.status),
+            },
+          };
+        });
       },
       EVENT_COMPLETED: (event) => {
-        if (
-          (event as ExtendedSSEEvent).eventId === eventId ||
-          event.metadata?.eventId === eventId
-        ) {
-          setEventDetailData((prev) => {
-            if (!prev) return null;
-            return {
-              ...prev,
-              event: { ...prev.event, status: (event as ExtendedSSEEvent).status },
-            };
-          });
-        }
+        if (!matchesEvent(event, eventId)) return;
+        setEventDetailData((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            event: {
+              ...prev.event,
+              status: updateEventStatus(event, prev.event.status),
+            },
+          };
+        });
       },
       EVENT_CANCELLED: (event) => {
-        if (
-          (event as ExtendedSSEEvent).eventId === eventId ||
-          event.metadata?.eventId === eventId
-        ) {
-          setEventDetailData((prev) => {
-            if (!prev) return null;
-            return {
-              ...prev,
-              event: { ...prev.event, status: (event as ExtendedSSEEvent).status },
-            };
-          });
-        }
+        if (!matchesEvent(event, eventId)) return;
+        setEventDetailData((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            event: {
+              ...prev.event,
+              status: updateEventStatus(event, prev.event.status),
+            },
+          };
+        });
       },
       EVENT_SCHEDULED: (event) => {
-        if (
-          (event as ExtendedSSEEvent).eventId === eventId ||
-          event.metadata?.eventId === eventId
-        ) {
-          setEventDetailData((prev) => {
-            if (!prev) return null;
-            return {
-              ...prev,
-              event: { ...prev.event, status: (event as ExtendedSSEEvent).status },
-            };
-          });
-        }
+        if (!matchesEvent(event, eventId)) return;
+        setEventDetailData((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            event: {
+              ...prev.event,
+              status: updateEventStatus(event, prev.event.status),
+            },
+          };
+        });
       },
       // Stream status changes
       STREAM_STARTED: (event) => {
-        console.log(`🎬 [SSE] STREAM_STARTED received:`, event);
-        console.log(`🎬 [SSE] Current eventId: ${eventId}`);
-        console.log(`🎬 [SSE] Event.eventId: ${(event as ExtendedSSEEvent).eventId}`);
-        console.log(
-          `🎬 [SSE] Event metadata.eventId: ${event.metadata?.eventId}`,
-        );
-
-        // ✅ FIX: Event properties are at root level, not in .data
-        if (
-          (event as ExtendedSSEEvent).eventId === eventId ||
-          event.metadata?.eventId === eventId
-        ) {
-          console.log(`✅ [SSE] STREAM_STARTED - Updating UI`);
-          setEventDetailData((prev) => {
-            if (!prev) return null;
-            return {
-              ...prev,
-              event: {
-                ...prev.event,
-                streamStatus: "connected",
-                streamUrl: (event as ExtendedSSEEvent).streamUrl || prev.event.streamUrl,
-                hlsStatus: (event as ExtendedSSEEvent).hlsStatus || prev.event.hlsStatus,
-              },
-            };
-          });
-        } else {
-          console.log(
-            `⚠️ [SSE] STREAM_STARTED - Event filtered out (ID mismatch)`,
-          );
-        }
+        if (!matchesEvent(event, eventId)) return;
+        const payload = getPayload(event);
+        setEventDetailData((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            event: {
+              ...prev.event,
+              streamStatus: "connected",
+              streamUrl: payload.streamUrl || prev.event.streamUrl,
+              hlsStatus: payload.hlsStatus || prev.event.hlsStatus,
+            },
+          };
+        });
       },
       STREAM_STOPPED: (event) => {
-        if (
-          (event as ExtendedSSEEvent).eventId === eventId ||
-          event.metadata?.eventId === eventId
-        ) {
-          setEventDetailData((prev) => {
-            if (!prev) return null;
-            return {
-              ...prev,
-              event: {
-                ...prev.event,
-                streamStatus: "disconnected",
-              },
-            };
-          });
-        }
+        if (!matchesEvent(event, eventId)) return;
+        setEventDetailData((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            event: {
+              ...prev.event,
+              streamStatus: "disconnected",
+            },
+          };
+        });
       },
       STREAM_PAUSED: (event) => {
-        if (
-          (event as ExtendedSSEEvent).eventId === eventId ||
-          event.metadata?.eventId === eventId
-        ) {
-          setEventDetailData((prev) => {
-            if (!prev) return null;
-            return {
-              ...prev,
-              event: {
-                ...prev.event,
-                streamStatus: "paused",
-              },
-            };
-          });
-        }
+        if (!matchesEvent(event, eventId)) return;
+        setEventDetailData((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            event: {
+              ...prev.event,
+              streamStatus: "paused",
+            },
+          };
+        });
       },
       STREAM_RESUMED: (event) => {
-        if (
-          (event as ExtendedSSEEvent).eventId === eventId ||
-          event.metadata?.eventId === eventId
-        ) {
+        if (!matchesEvent(event, eventId)) return;
+        setEventDetailData((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            event: {
+              ...prev.event,
+              streamStatus: "connected",
+            },
+          };
+        });
+      },
+      STREAM_STATUS_UPDATE: (event) => {
+        if (!matchesEvent(event, eventId)) return;
+        const payload = getPayload(event);
+        let newStreamStatus: Event["streamStatus"] | null = null;
+        if (event.type === "STREAM_PAUSED") {
+          newStreamStatus = "paused";
+        } else if (event.type === "STREAM_RESUMED") {
+          newStreamStatus = "connected";
+        } else if (payload.status === "live") {
+          newStreamStatus = "connected";
+        } else if (payload.status === "ended") {
+          newStreamStatus = "disconnected";
+        }
+
+        if (newStreamStatus) {
           setEventDetailData((prev) => {
             if (!prev) return null;
             return {
               ...prev,
               event: {
                 ...prev.event,
-                streamStatus: "connected",
+                streamStatus: newStreamStatus,
+                streamUrl: payload.streamUrl || prev.event.streamUrl,
               },
             };
           });
-        }
-      },
-      STREAM_STATUS_UPDATE: (event) => {
-        if (
-          (event as ExtendedSSEEvent).eventId === eventId ||
-          event.metadata?.eventId === eventId
-        ) {
-          let newStreamStatus = null;
-          if ((event as ExtendedSSEEvent).type === "STREAM_PAUSED") {
-            newStreamStatus = "paused";
-          } else if ((event as ExtendedSSEEvent).type === "STREAM_RESUMED") {
-            newStreamStatus = "connected";
-          } else if ((event as ExtendedSSEEvent).status === "live") {
-            newStreamStatus = "connected";
-          } else if ((event as ExtendedSSEEvent).status === "ended") {
-            newStreamStatus = "disconnected";
-          }
-
-          if (newStreamStatus) {
-            setEventDetailData((prev) => {
-              if (!prev) return null;
-              return {
-                ...prev,
-                event: {
-                  ...prev.event,
-                  streamStatus: newStreamStatus,
-                  streamUrl: (event as ExtendedSSEEvent).streamUrl || prev.event.streamUrl,
-                },
-              };
-            });
-          }
         }
       },
       // ✅ Phase 2: RTMP Ingest Events (OBS connection)
       RTMP_CONNECTED: (event) => {
-        console.log(`📡 [SSE] RTMP_CONNECTED received:`, event);
-        if (
-          (event as ExtendedSSEEvent).eventId === eventId ||
-          event.metadata?.eventId === eventId
-        ) {
-          console.log(`✅ [SSE] RTMP_CONNECTED - Updating UI`);
-
-          setEventDetailData((prev) => {
-            if (!prev) return null;
-            return {
-              ...prev,
-              event: {
-                ...prev.event,
-                streamStatus: (event as ExtendedSSEEvent).streamStatus || "connected",
-              },
-            };
-          });
-        }
+        if (!matchesEvent(event, eventId)) return;
+        const payload = getPayload(event);
+        setEventDetailData((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            event: {
+              ...prev.event,
+              streamStatus: payload.streamStatus || "connected",
+            },
+          };
+        });
       },
       RTMP_DISCONNECTED: (event) => {
-        if (
-          (event as ExtendedSSEEvent).eventId === eventId ||
-          event.metadata?.eventId === eventId
-        ) {
-          setEventDetailData((prev) => {
-            if (!prev) return null;
-            return {
-              ...prev,
-              event: {
-                ...prev.event,
-                streamStatus: (event as ExtendedSSEEvent).streamStatus || "offline",
-              },
-            };
-          });
-        }
+        if (!matchesEvent(event, eventId)) return;
+        const payload = getPayload(event);
+        setEventDetailData((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            event: {
+              ...prev.event,
+              streamStatus: payload.streamStatus || "offline",
+            },
+          };
+        });
       },
       // ✅ Phase 2: HLS Distribution Events (public stream availability)
       HLS_READY: (event) => {
-        console.log(`🎥 [SSE] HLS_READY received:`, event);
-        if (
-          (event as ExtendedSSEEvent).eventId === eventId ||
-          event.metadata?.eventId === eventId
-        ) {
-          console.log(`✅ [SSE] HLS_READY - Updating UI`);
-          setEventDetailData((prev) => {
-            if (!prev) return null;
-            return {
-              ...prev,
-              event: {
-                ...prev.event,
-                hlsStatus: "ready",
-                streamUrl: (event as ExtendedSSEEvent).streamUrl || prev.event.streamUrl,
-              },
-            };
-          });
-        }
+        if (!matchesEvent(event, eventId)) return;
+        const payload = getPayload(event);
+        setEventDetailData((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            event: {
+              ...prev.event,
+              hlsStatus: "ready",
+              streamUrl: payload.streamUrl || prev.event.streamUrl,
+            },
+          };
+        });
       },
       HLS_UNAVAILABLE: (event) => {
-        if (
-          (event as ExtendedSSEEvent).eventId === eventId ||
-          event.metadata?.eventId === eventId
-        ) {
-          setEventDetailData((prev) => {
-            if (!prev) return null;
-            return {
-              ...prev,
-              event: {
-                ...prev.event,
-                hlsStatus: "offline",
-              },
-            };
-          });
-        }
+        if (!matchesEvent(event, eventId)) return;
+        setEventDetailData((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            event: {
+              ...prev.event,
+              hlsStatus: "offline",
+            },
+          };
+        });
       },
       HLS_PROCESSING: (event) => {
-        if (
-          (event as ExtendedSSEEvent).eventId === eventId ||
-          event.metadata?.eventId === eventId
-        ) {
-          setEventDetailData((prev) => {
-            if (!prev) return null;
-            return {
-              ...prev,
-              event: {
-                ...prev.event,
-                hlsStatus: "processing",
-              },
-            };
-          });
-        }
+        if (!matchesEvent(event, eventId)) return;
+        setEventDetailData((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            event: {
+              ...prev.event,
+              hlsStatus: "processing",
+            },
+          };
+        });
       },
     });
 

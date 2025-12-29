@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useAuth } from "../contexts/AuthContext";
+import type { Fight } from "../types";
 
 // Enhanced SSE Event Types matching backend service
 export enum SSEEventType {
@@ -93,6 +94,53 @@ export interface SSEEvent<T> {
     streamId?: string;
   };
 }
+
+type FightStatusEventData = {
+  id?: string;
+  status?: Fight["status"];
+  [key: string]: unknown;
+};
+
+type ProposalEventData = {
+  id?: string;
+  fightId?: string;
+  amount?: number;
+  side?: "red" | "blue";
+  proposerId?: string;
+  type?: "PAGO" | "DOY";
+  [key: string]: unknown;
+};
+
+const fightStatuses: Fight["status"][] = [
+  "upcoming",
+  "betting",
+  "live",
+  "completed",
+  "cancelled",
+];
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
+const isFightStatusEventData = (
+  value: unknown,
+): value is FightStatusEventData => {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  if (value.status === undefined) {
+    return true;
+  }
+
+  return (
+    typeof value.status === "string" &&
+    fightStatuses.includes(value.status as Fight["status"])
+  );
+};
+
+const isProposalEventData = (value: unknown): value is ProposalEventData =>
+  isRecord(value);
 
 export type ConnectionStatus =
   | "connecting"
@@ -197,39 +245,48 @@ const useSSE = <T>(url: string | null): UseSSEReturn<T> => {
               }
             });
           }
-        } catch (e) {
-          console.error(`❌ SSE: Parse error for data:`, event.data);
+        } catch (parseError: unknown) {
+          console.error(
+            `❌ SSE: Parse error for data:`,
+            parseError instanceof Error ? parseError.message : event.data,
+          );
         }
       };
 
       // Handle specific event types
       Object.values(SSEEventType).forEach((eventType) => {
-        es.addEventListener(eventType, (event: any) => {
-          if (!mountedRef.current) return;
+        es.addEventListener(
+          eventType,
+          (event: MessageEvent & { lastEventId?: string }) => {
+            if (!mountedRef.current) return;
 
-          try {
-            const parsedData: SSEEvent<T> = {
-              ...JSON.parse(event.data),
-              id: event.lastEventId || "unknown",
-              type: eventType,
-            };
+            try {
+              const parsedData: SSEEvent<T> = {
+                ...JSON.parse(event.data),
+                id: event.lastEventId || "unknown",
+                type: eventType,
+              };
 
-            setLastEvent(parsedData);
-            setData(parsedData.data);
+              setLastEvent(parsedData);
+              setData(parsedData.data);
 
-            // Call registered handlers
-            const handlers = eventHandlersRef.current.get(eventType);
-            handlers?.forEach((handler) => {
-              try {
-                handler(parsedData);
-              } catch (error) {
-                console.error(`❌ SSE: Handler error for ${eventType}:`, error);
-              }
-            });
-          } catch (error) {
-            console.error(`❌ SSE: Parse error for ${eventType}:`, error);
-          }
-        });
+              // Call registered handlers
+              const handlers = eventHandlersRef.current.get(eventType);
+              handlers?.forEach((handler) => {
+                try {
+                  handler(parsedData);
+                } catch (error) {
+                  console.error(
+                    `❌ SSE: Handler error for ${eventType}:`,
+                    error,
+                  );
+                }
+              });
+            } catch (error) {
+              console.error(`❌ SSE: Parse error for ${eventType}:`, error);
+            }
+          },
+        );
       });
 
       es.onerror = () => {
@@ -353,7 +410,7 @@ const useSSE = <T>(url: string | null): UseSSEReturn<T> => {
  * Specialized hook for admin-specific SSE connections
  * Automatically determines the appropriate admin channel based on user role
  */
-export function useAdminSSE<T = any>(
+export function useAdminSSE<T = unknown>(
   specificChannel?: AdminChannel,
   eventFilters?: SSEEventType[],
 ) {
@@ -407,7 +464,7 @@ export function useAdminSSE<T = any>(
  * Subscribes to fight updates, betting events, and proposals
  */
 export function useFightSSE(fightId?: string) {
-  const sse = useAdminSSE(AdminChannel.FIGHT_MANAGEMENT, [
+  const sse = useAdminSSE<unknown>(AdminChannel.FIGHT_MANAGEMENT, [
     SSEEventType.FIGHT_STATUS_UPDATE,
     SSEEventType.BETTING_WINDOW_OPENED,
     SSEEventType.BETTING_WINDOW_CLOSED,
@@ -416,9 +473,9 @@ export function useFightSSE(fightId?: string) {
     SSEEventType.DOY_PROPOSAL,
   ]);
 
-  const [fightData, setFightData] = useState<any>(null);
+  const [fightData, setFightData] = useState<FightStatusEventData | null>(null);
   const [bettingWindow, setBettingWindow] = useState<boolean>(false);
-  const [proposals, setProposals] = useState<any[]>([]);
+  const [proposals, setProposals] = useState<ProposalEventData[]>([]);
 
   useEffect(() => {
     if (sse.status !== "connected") return;
@@ -426,8 +483,10 @@ export function useFightSSE(fightId?: string) {
     const unsubscribers = [
       sse.subscribe(SSEEventType.FIGHT_STATUS_UPDATE, (event) => {
         if (!fightId || event.metadata?.fightId === fightId) {
-          setFightData(event.data);
-          setBettingWindow(event.data.status === "betting");
+          if (isFightStatusEventData(event.data)) {
+            setFightData(event.data);
+            setBettingWindow(event.data.status === "betting");
+          }
         }
       }),
 
@@ -445,13 +504,17 @@ export function useFightSSE(fightId?: string) {
 
       sse.subscribe(SSEEventType.PAGO_PROPOSAL, (event) => {
         if (!fightId || event.metadata?.fightId === fightId) {
-          setProposals((prev) => [...prev, { ...event.data, type: "PAGO" }]);
+          if (isProposalEventData(event.data)) {
+            setProposals((prev) => [...prev, { ...event.data, type: "PAGO" }]);
+          }
         }
       }),
 
       sse.subscribe(SSEEventType.DOY_PROPOSAL, (event) => {
         if (!fightId || event.metadata?.fightId === fightId) {
-          setProposals((prev) => [...prev, { ...event.data, type: "DOY" }]);
+          if (isProposalEventData(event.data)) {
+            setProposals((prev) => [...prev, { ...event.data, type: "DOY" }]);
+          }
         }
       }),
     ];

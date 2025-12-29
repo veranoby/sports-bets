@@ -47,7 +47,18 @@ const EditBetModal: React.FC<EditBetModalProps> = ({
 
     try {
       // Prepare update data
-      const updateData: any = {
+      const updateData: {
+        amount: number;
+        side: "red" | "blue";
+        betType: "flat" | "doy";
+        terms?: {
+          ratio?: number;
+          isOffer?: boolean;
+          pagoAmount?: number;
+          doyAmount?: number;
+          proposedBy?: string;
+        };
+      } = {
         amount: Number(amount),
         side,
         betType,
@@ -67,9 +78,11 @@ const EditBetModal: React.FC<EditBetModalProps> = ({
         onSave(response.data);
         onClose();
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error updating bet:", err);
-      setError(err.message || "Error al actualizar la apuesta");
+      setError(
+        err instanceof Error ? err.message : "Error al actualizar la apuesta",
+      );
     } finally {
       setLoading(false);
     }

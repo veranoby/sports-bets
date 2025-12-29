@@ -19,6 +19,41 @@ import EmptyState from "../../components/shared/EmptyState";
 import Modal from "../../components/shared/Modal";
 import Card from "../../components/shared/Card";
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
+const isNotification = (value: unknown): value is Notification => {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    typeof value.id === "string" &&
+    typeof value.title === "string" &&
+    typeof value.message === "string" &&
+    typeof value.type === "string"
+  );
+};
+
+const extractNotifications = (payload: unknown): Notification[] => {
+  if (Array.isArray(payload)) {
+    return payload.filter(isNotification);
+  }
+
+  if (isNotification(payload)) {
+    return [payload];
+  }
+
+  if (isRecord(payload)) {
+    const maybeNotifications = payload["notifications"];
+    if (Array.isArray(maybeNotifications)) {
+      return maybeNotifications.filter(isNotification);
+    }
+  }
+
+  return [];
+};
+
 const Notifications: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
@@ -68,7 +103,7 @@ const Notifications: React.FC = () => {
         includeCreatedBy: true,
       });
 
-      setNotifications((response.data as any)?.notifications || []);
+      setNotifications(extractNotifications(response.data));
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Error loading notifications",

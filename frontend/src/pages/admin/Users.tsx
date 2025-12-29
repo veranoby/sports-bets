@@ -36,11 +36,9 @@ const AdminUsersPage: React.FC = () => {
     setError(null);
 
     // Always fetch all users initially without filters
-    const params: any = { role: "user", limit: 1000 };
-
-    const res = await usersAPI.getAll(params);
+    const res = await usersAPI.getAll({ role: "user", limit: 1000 });
     if (res.success) {
-      setUsers((res.data as any)?.users || []);
+      setUsers(res.data?.users ?? []);
     } else {
       setError(res.error || "Error loading users");
     }
@@ -52,8 +50,7 @@ const AdminUsersPage: React.FC = () => {
     try {
       const response = await adminAPI.getActiveUsers();
       if (response.success && response.data) {
-        const activeIds = (response.data as any)?.activeUserIds || [];
-        setOnlineUserIds(new Set(activeIds));
+        setOnlineUserIds(new Set(response.data.activeUserIds || []));
       }
     } catch (error) {
       console.error("Error fetching online status:", error);

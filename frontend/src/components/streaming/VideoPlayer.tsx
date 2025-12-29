@@ -1,6 +1,8 @@
 import React, { useRef, useState, useEffect } from "react";
-import videojs from "video.js";
-const videojsAny: typeof videojs = videojs;
+import videojs, {
+  type VideoJsPlayer,
+  type VideoJsPlayerOptions,
+} from "video.js";
 import "video.js/dist/video-js.css";
 import "@videojs/http-streaming";
 import { Crown } from "lucide-react";
@@ -9,25 +11,6 @@ import { Modal, notification } from "antd";
 import PaymentProofUpload from "../user/PaymentProofUpload";
 
 // ... (interfaces VideoJSOptions, StreamQuality, VideoPlayerProps remain the same)
-
-interface VideoJSOptions {
-  autoplay?: boolean;
-  controls?: boolean;
-  responsive?: boolean;
-  fluid?: boolean;
-  sources?: Array<{
-    src: string;
-    type: string;
-  }>;
-  playbackRates?: number[];
-  html5?: {
-    hls?: {
-      enableLowInitialPlaylist: boolean;
-      smoothQualityChange: boolean;
-      overrideNative: boolean;
-    };
-  };
-}
 
 interface StreamQuality {
   label: string;
@@ -44,7 +27,7 @@ interface VideoPlayerProps {
   controls?: boolean;
   responsive?: boolean;
   enableAnalytics?: boolean;
-  onReady?: (player: any) => void;
+  onReady?: (player: VideoJsPlayer) => void;
   onError?: (error: unknown) => void;
   onPlay?: () => void;
   onPause?: () => void;
@@ -154,14 +137,21 @@ const Player: React.FC<VideoPlayerProps> = ({
   className = "",
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const playerRef = useRef<any | null>(null);
+  const playerRef = useRef<VideoJsPlayer | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!videoRef.current) return;
 
-    const options: VideoJSOptions = {
+    const isSafari =
+      (
+        videojs as typeof videojs & {
+          browser?: { IS_SAFARI?: boolean };
+        }
+      ).browser?.IS_SAFARI ?? false;
+
+    const options: VideoJsPlayerOptions = {
       autoplay: autoplay,
       controls: false,
       responsive: responsive,
@@ -172,12 +162,12 @@ const Player: React.FC<VideoPlayerProps> = ({
         hls: {
           enableLowInitialPlaylist: true,
           smoothQualityChange: true,
-          overrideNative: !videojsAny.browser.IS_SAFARI,
+          overrideNative: !isSafari,
         },
       },
     };
 
-    const player = videojsAny(videoRef.current, options);
+    const player = videojs(videoRef.current, options);
     playerRef.current = player;
 
     player.ready(() => {
@@ -198,7 +188,7 @@ const Player: React.FC<VideoPlayerProps> = ({
 
     return () => {
       if (playerRef.current) {
-        (playerRef.current as any).dispose();
+        playerRef.current.dispose();
         playerRef.current = null;
       }
     };

@@ -20,6 +20,7 @@ import Card from "../../components/shared/Card";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import SubscriptionTabs from "../../components/admin/SubscriptionTabs";
+import type { SubscriptionData } from "../../types";
 
 interface MembershipRequest {
   id: string;
@@ -48,6 +49,41 @@ interface MembershipRequest {
   };
 }
 
+interface MembershipRequestListResponse {
+  requests: MembershipRequest[];
+  total?: number;
+  limit?: number;
+  offset?: number;
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
+const isMembershipRequest = (value: unknown): value is MembershipRequest => {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    typeof value.id === "string" &&
+    typeof value.userId === "string" &&
+    typeof value.requestedMembershipType === "string" &&
+    typeof value.status === "string" &&
+    typeof value.createdAt === "string" &&
+    isRecord(value.user)
+  );
+};
+
+const isMembershipRequestListResponse = (
+  value: unknown,
+): value is MembershipRequestListResponse =>
+  isRecord(value) &&
+  Array.isArray(value.requests) &&
+  value.requests.every(isMembershipRequest);
+
+const getErrorMessage = (err: unknown): string =>
+  err instanceof Error ? err.message : "Error desconocido";
+
 const MembershipRequestsPage: React.FC = () => {
   const [requests, setRequests] = useState<MembershipRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -74,13 +110,13 @@ const MembershipRequestsPage: React.FC = () => {
       const response = await membershipRequestsAPI.getPendingRequests({
         status: "all", // Fetch all requests, then filter in frontend
       });
-      if (response.success && response.data) {
-        setRequests((response.data as any).requests || []);
+      if (response.success && isMembershipRequestListResponse(response.data)) {
+        setRequests(response.data.requests);
       } else {
         setError(response.error || "Error al cargar solicitudes");
       }
-    } catch (err: any) {
-      setError(err.message || "Error desconocido");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -118,8 +154,8 @@ const MembershipRequestsPage: React.FC = () => {
       } else {
         setErrorMessage(response.error || "Error al rechazar solicitud");
       }
-    } catch (err: any) {
-      setErrorMessage(err.message || "Error al rechazar solicitud");
+    } catch (err: unknown) {
+      setErrorMessage(getErrorMessage(err));
     } finally {
       setProcessing(null);
     }
@@ -130,7 +166,7 @@ const MembershipRequestsPage: React.FC = () => {
     setShowDetailsModal(true);
   };
 
-  const handleUserSave = async (subscriptionData: any) => {
+  const handleUserSave = async (_subscriptionData: SubscriptionData) => {
     if (!selectedRequest) return;
 
     setProcessing(selectedRequest.id);
@@ -150,8 +186,8 @@ const MembershipRequestsPage: React.FC = () => {
       } else {
         setErrorMessage(completeResponse.error || "Error al aprobar solicitud");
       }
-    } catch (err: any) {
-      setErrorMessage(err.message || "Error al aprobar solicitud");
+    } catch (err: unknown) {
+      setErrorMessage(getErrorMessage(err));
     } finally {
       setProcessing(null);
     }
@@ -178,8 +214,8 @@ const MembershipRequestsPage: React.FC = () => {
       } else {
         setErrorMessage(response.error || "Error al eliminar solicitud");
       }
-    } catch (err: any) {
-      setErrorMessage(err.message || "Error al eliminar solicitud");
+    } catch (err: unknown) {
+      setErrorMessage(getErrorMessage(err));
     } finally {
       setProcessing(null);
     }

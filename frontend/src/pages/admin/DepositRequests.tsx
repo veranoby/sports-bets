@@ -10,6 +10,9 @@ import { useToast } from "../../hooks/useToast";
 import type { WalletOperation } from "../../types";
 import { ChevronLeft, ChevronRight, RefreshCw, Filter } from "lucide-react";
 
+const getErrorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : "Error desconocido";
+
 const DepositRequests: React.FC = () => {
   const { toast } = useToast();
   const [page, setPage] = useState(1);
@@ -55,8 +58,8 @@ const DepositRequests: React.FC = () => {
       setShowApproveModal(false);
       setSelectedOperation(null);
       loadOperations();
-    } catch (err: any) {
-      toast.error(err.message || "Error al aprobar la solicitud.");
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err) || "Error al aprobar la solicitud.");
     }
   };
 
@@ -71,8 +74,8 @@ const DepositRequests: React.FC = () => {
       setShowRejectModal(false);
       setSelectedOperation(null);
       loadOperations();
-    } catch (err: any) {
-      toast.error(err.message || "Error al rechazar la solicitud.");
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err) || "Error al rechazar la solicitud.");
     }
   };
 
@@ -87,8 +90,8 @@ const DepositRequests: React.FC = () => {
       setShowCompleteModal(false);
       setSelectedOperation(null);
       loadOperations();
-    } catch (err: any) {
-      toast.error(err.message || "Error al marcar como completado.");
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err) || "Error al marcar como completado.");
     }
   };
 

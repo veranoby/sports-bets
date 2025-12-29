@@ -2,13 +2,24 @@ import { useState, useEffect, useRef, useCallback } from "react";
 
 // Types should be in a separate file, e.g., frontend/src/types/sse.ts
 // For now, defining them here as per the prompt structure.
+type SSEMetadata = {
+  userId?: string;
+  eventId?: string;
+  fightId?: string;
+  betId?: string;
+  adminId?: string;
+  amount?: number;
+  streamId?: string;
+  [key: string]: string | number | boolean | undefined;
+};
+
 export interface SSEEvent<T> {
   id: string;
   type: string;
   data: T;
   timestamp: string;
   priority: "low" | "medium" | "high" | "critical";
-  metadata?: any;
+  metadata?: SSEMetadata;
 }
 
 export type ConnectionStatus =
@@ -92,7 +103,7 @@ const useMultiSSE = <T>(
           ...prev,
           [key]: { ...prev[key], lastEvent: parsedData },
         }));
-      } catch (e) {
+      } catch (parseError: unknown) {
         console.error(
           `[SSE] Failed to parse event data for channel [${key}]:`,
           event.data,

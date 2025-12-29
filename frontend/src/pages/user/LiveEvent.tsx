@@ -48,6 +48,59 @@ interface Fight {
   blueFighter?: string;
 }
 
+type ProposalPayload = {
+  id?: string;
+  fightId?: string;
+  amount?: number;
+  side?: "red" | "blue";
+  proposerId?: string;
+  type?: "PAGO" | "DOY";
+  [key: string]: unknown;
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
+const isProposalPayload = (value: unknown): value is ProposalPayload => {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  if (
+    value.type !== undefined &&
+    value.type !== "PAGO" &&
+    value.type !== "DOY"
+  ) {
+    return false;
+  }
+
+  if (value.amount !== undefined && typeof value.amount !== "number") {
+    return false;
+  }
+
+  if (
+    value.side !== undefined &&
+    value.side !== "red" &&
+    value.side !== "blue"
+  ) {
+    return false;
+  }
+
+  if (value.id !== undefined && typeof value.id !== "string") {
+    return false;
+  }
+
+  if (value.fightId !== undefined && typeof value.fightId !== "string") {
+    return false;
+  }
+
+  if (value.proposerId !== undefined && typeof value.proposerId !== "string") {
+    return false;
+  }
+
+  return true;
+};
+
 interface Bet {
   id: string;
   eventId: string;
@@ -831,21 +884,27 @@ const LiveEvent = () => {
   // All other real-time updates use SSE per SDD specification (brain/sdd_system.json:20-36)
 
   // ✅ WebSocket listeners - ONLY for PAGO/DOY proposals (bidirectional required)
-  useWebSocketListener(
-    "pago_proposal",
-    useCallback((data: any) => {
-      // Handle PAGO proposal (bidirectional communication required)
-      // Add implementation for handling PAGO proposals
-    }, []),
-  );
+  const handlePagoProposal = useCallback((payload: unknown) => {
+    if (!isProposalPayload(payload)) {
+      console.warn("Ignoring malformed PAGO proposal payload", payload);
+      return;
+    }
+    // TODO: implement bidirectional handling for PAGO proposals
+  }, []);
 
-  useWebSocketListener(
-    "doy_proposal",
-    useCallback((data: any) => {
-      // Handle DOY proposal (bidirectional communication required)
-      // Add implementation for handling DOY proposals
-    }, []),
-  );
+  const handleDoyProposal = useCallback((payload: unknown) => {
+    if (!isProposalPayload(payload)) {
+      console.warn("Ignoring malformed DOY proposal payload", payload);
+      return;
+    }
+    // TODO: implement bidirectional handling for DOY proposals
+  }, []);
+
+  useWebSocketListener("pago_proposal", handlePagoProposal, [
+    handlePagoProposal,
+  ]);
+
+  useWebSocketListener("doy_proposal", handleDoyProposal, [handleDoyProposal]);
 
   // ✅ Load data on mount - only depend on eventId to avoid infinite loop
   useEffect(() => {
