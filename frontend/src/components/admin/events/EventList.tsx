@@ -543,10 +543,13 @@ const EventList: React.FC<EventListProps> = ({
             className="px-3 py-1 border border-gray-300 rounded text-sm"
           >
             <option value="">Todos los estados</option>
+            <option value="draft">Borrador</option>
             <option value="scheduled">Programados</option>
-            <option value="active">Activos</option>
-            <option value="live">En Vivo</option>
+            <option value="ready">Listos</option>
+            <option value="betting_open">Apuestas Abiertas</option>
+            <option value="in_progress">En Progreso</option>
             <option value="completed">Completados</option>
+            <option value="cancelled">Cancelados</option>
           </select>
         </div>
       </div>

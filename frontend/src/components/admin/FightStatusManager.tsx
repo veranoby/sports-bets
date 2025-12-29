@@ -8,6 +8,10 @@ import {
   TrophyOutlined,
   CrownOutlined,
   FireOutlined,
+  StopOutlined,
+  FileTextOutlined,
+  FieldTimeOutlined,
+  DollarCircleOutlined,
 } from "@ant-design/icons";
 import type { Fight } from "../../types";
 
@@ -18,28 +22,46 @@ interface FightStatusManagerProps {
 const FightStatusManager: React.FC<FightStatusManagerProps> = ({ fight }) => {
   const getStatusTag = (status: string) => {
     switch (status) {
-      case "upcoming":
+      case "draft":
         return (
-          <Tag icon={<ClockCircleOutlined />} color="default">
-            Upcoming
+          <Tag icon={<FileTextOutlined />} color="gray">
+            Borrador
           </Tag>
         );
-      case "betting":
+      case "scheduled":
         return (
-          <Tag icon={<UserOutlined />} color="processing">
-            Betting Open
+          <Tag icon={<ClockCircleOutlined />} color="blue">
+            Programada
           </Tag>
         );
-      case "live":
+      case "ready":
         return (
-          <Tag icon={<PlayCircleOutlined />} color="error">
-            Live
+          <Tag icon={<FieldTimeOutlined />} color="yellow">
+            Próxima
+          </Tag>
+        );
+      case "betting_open":
+        return (
+          <Tag icon={<DollarCircleOutlined />} color="green">
+            Apuestas Abiertas
+          </Tag>
+        );
+      case "in_progress":
+        return (
+          <Tag icon={<PlayCircleOutlined />} color="red">
+            En Progreso
           </Tag>
         );
       case "completed":
         return (
-          <Tag icon={<CheckCircleOutlined />} color="success">
-            Completed
+          <Tag icon={<CheckCircleOutlined />} color="purple">
+            Finalizada
+          </Tag>
+        );
+      case "cancelled":
+        return (
+          <Tag icon={<StopOutlined />} color="gray">
+            Cancelada
           </Tag>
         );
       default:

@@ -1,12 +1,7 @@
 // frontend/src/pages/user/Bets.tsx - Refactored for modern UI and 2-column layout
 "use client";
 
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  useMemo,
-} from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Activity,

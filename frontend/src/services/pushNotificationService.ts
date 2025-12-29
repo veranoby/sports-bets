@@ -2,10 +2,7 @@
 // 📱 PUSH NOTIFICATIONS PARA BETTING EVENTS - PWA Enhancement
 
 interface NotificationPayload {
-  type:
-    | "betting_window_open"
-    | "betting_window_close"
-    | "fight_result";
+  type: "betting_window_open" | "betting_window_close" | "fight_result";
   title: string;
   body: string;
   data: {

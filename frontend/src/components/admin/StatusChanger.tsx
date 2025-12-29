@@ -16,79 +16,37 @@ const StatusChanger: React.FC<StatusChangerProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Show all actions for all states (user requested)
-  const getValidActions = () => {
-    return [
-      {
-        action: "schedule",
-        label: "Marcar como Programado",
-        description: "Volver a estado programado",
-      },
-      {
-        action: "activate",
-        label: "Iniciar Evento",
-        description: "Cambiar estado a iniciado/en progreso",
-      },
-      {
-        action: "complete",
-        label: "Marcar como Terminado",
-        description: "Finalizar el evento",
-      },
-      {
-        action: "cancel",
-        label: "Cancelar Evento",
-        description: "Marcar el evento como cancelado",
-      },
-    ];
+  const statusConfig = {
+    draft: { text: "Borrador", color: "bg-gray-200 text-gray-800" },
+    scheduled: { text: "Programada", color: "bg-blue-100 text-blue-800" },
+    ready: { text: "Próxima", color: "bg-yellow-100 text-yellow-800" },
+    betting_open: { text: "Apuestas Abiertas", color: "bg-green-100 text-green-800" },
+    in_progress: { text: "En Progreso", color: "bg-red-100 text-red-800" },
+    completed: { text: "Finalizada", color: "bg-purple-100 text-purple-800" },
+    cancelled: { text: "Cancelada", color: "bg-gray-200 text-gray-800" },
   };
 
-  const validActions = getValidActions();
-  const currentStatusConfig = {
-    scheduled: {
-      text: "Programado",
-      color: "bg-gray-100 text-gray-800",
-      icon: null,
-    },
-    active: {
-      text: "Iniciado",
-      color: "bg-blue-100 text-blue-800",
-      icon: null,
-    },
-    live: {
-      text: "En Vivo",
-      color: "bg-red-100 text-red-800",
-      icon: null,
-    },
-    completed: {
-      text: "Terminado",
-      color: "bg-green-100 text-green-800",
-      icon: null,
-    },
-    cancelled: {
-      text: "Cancelado",
-      color: "bg-red-100 text-red-800",
-      icon: null,
-    },
-    "in-progress": {
-      text: "Iniciado",
-      color: "bg-yellow-100 text-yellow-800",
-      icon: null,
-    },
-    betting: {
-      text: "Apuestas Abiertas",
-      color: "bg-purple-100 text-purple-800",
-      icon: null,
-    },
-    paused: {
-      text: "Pausado",
-      color: "bg-yellow-100 text-yellow-800",
-      icon: null,
-    },
+  const getValidActions = (status: string) => {
+    switch (status) {
+      case "draft":
+        return [{ action: "schedule", label: "Programar Evento" }];
+      case "scheduled":
+        return [{ action: "mark_ready", label: "Marcar como Próxima" }];
+      case "ready":
+        return [{ action: "open_betting", label: "Abrir Apuestas" }];
+      case "betting_open":
+        return [{ action: "start_fight", label: "Iniciar Pelea" }];
+      case "in_progress":
+        return [{ action: "complete", label: "Finalizar Evento" }];
+      default:
+        return [];
+    }
   };
 
+  const validActions = getValidActions(event.status);
   const currentStatusDisplay =
-    currentStatusConfig[event.status as keyof typeof currentStatusConfig] ||
-    currentStatusConfig.scheduled;
+    statusConfig[event.status as keyof typeof statusConfig] ||
+    statusConfig.draft;
 
   const handleClickOutside = (event: MouseEvent) => {
     if (
@@ -118,7 +76,6 @@ const StatusChanger: React.FC<StatusChangerProps> = ({
         className={`px-2 py-1 rounded-full text-xs font-medium flex items-center ${currentStatusDisplay.color} cursor-pointer hover:opacity-90`}
         onClick={() => setIsOpen(!isOpen)}
       >
-        {currentStatusDisplay.icon}
         {currentStatusDisplay.text}
         <ChevronDown className="w-3 h-3 ml-1" />
       </button>
@@ -133,9 +90,15 @@ const StatusChanger: React.FC<StatusChangerProps> = ({
               onClick={() => handleActionClick(action.action)}
             >
               <div className="font-medium">{action.label}</div>
-              <div className="text-xs text-gray-500">{action.description}</div>
             </button>
           ))}
+           <button
+              type="button"
+              className="block w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-red-50"
+              onClick={() => handleActionClick("cancel")}
+            >
+              <div className="font-medium">Cancelar Evento</div>
+            </button>
         </div>
       )}
     </div>

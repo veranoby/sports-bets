@@ -257,13 +257,13 @@ export interface EventData {
   scheduledDate: string;
   startTime?: string;
   status:
-    | "upcoming"
-    | "live"
+    | "draft"
+    | "scheduled"
+    | "ready"
+    | "betting_open"
+    | "in_progress"
     | "completed"
-    | "cancelled"
-    | "betting"
-    | "in-progress"
-    | "scheduled";
+    | "cancelled";
   venue: {
     id: string;
     name: string;
@@ -362,7 +362,14 @@ export interface Fight {
   blueCorner: string; // Required in database
   weight: number; // Required in database
   notes?: string;
-  status: "upcoming" | "betting" | "live" | "completed" | "cancelled";
+  status:
+    | "draft"
+    | "scheduled"
+    | "ready"
+    | "betting_open"
+    | "in_progress"
+    | "completed"
+    | "cancelled";
   initialOdds?: {
     red: number;
     blue: number;

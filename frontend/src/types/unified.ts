@@ -8,13 +8,15 @@ import type {
 
 // Status from admin/Events.tsx
 type AdminEventStatus =
+  | "draft"
   | "scheduled"
-  | "active"
-  | "live"
+  | "ready"
+  | "betting_open"
+  | "in_progress"
   | "completed"
   | "cancelled";
 // Status from types/index.ts
-type IndexEventStatus = "scheduled" | "in-progress" | "completed" | "cancelled";
+type IndexEventStatus = AdminEventStatus;
 
 export interface UnifiedEvent {
   id: string;
