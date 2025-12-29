@@ -4,7 +4,6 @@
 import React, {
   useState,
   useEffect,
-  useCallback,
   useRef,
   useMemo,
 } from "react";
@@ -26,30 +25,9 @@ import { eventsAPI } from "../../services/api"; // Added for live events
 import BetCard from "../../components/user/BetCard";
 import BettingPanel from "../../components/user/BettingPanel";
 import CreateBetModal from "../../components/user/CreateBetModal";
-import ProposalNotifications from "../../components/user/ProposalNotifications";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
-import { useWebSocketListener } from "../../hooks/useWebSocket";
 
-import type { Bet, BetStatus, EventData, Fight } from "../../types";
-import type { UnifiedBet } from "../../types/unified";
-
-// Tipos para las propuestas P2P
-interface ProposalReceivedData {
-  newProposal: Bet;
-}
-interface ProposalAcceptedData {
-  proposalId: string;
-}
-interface ProposalRejectedData {
-  proposalId: string;
-}
-interface BetProposalUpdateData {
-  proposalId: string;
-  updates: Partial<Bet>;
-}
-interface PagoProposedData {
-  newBet: Bet;
-}
+import type { Bet, EventData, Fight } from "../../types";
 
 export default function UserBets() {
   const navigate = useNavigate();
@@ -65,11 +43,8 @@ export default function UserBets() {
   // API Hooks
   const { bets, loading, fetchMyBets, cancelBet, acceptBet } = useBets();
 
-  // Use ref for bets to handle WebSocket updates
+  // Use ref for bets
   const betsRef = useRef<Bet[]>([]);
-  const setBetsRef = useRef<React.Dispatch<React.SetStateAction<Bet[]>>>(
-    () => {},
-  );
 
   useWallet();
 
@@ -100,8 +75,6 @@ export default function UserBets() {
             setLiveEvent(event);
 
             // Find active fight within the event
-            // Logic: Look for status='betting' or 'live', otherwise 'upcoming' with lowest number?
-            // Simplified: Just look for active betting or live fight
             const activeFight = event.fights?.find(
               (f) => f.status === "betting" || f.status === "live",
             );
@@ -137,39 +110,6 @@ export default function UserBets() {
       createdAt: bet.createdAt ?? new Date().toISOString(),
     }));
   }, [bets]);
-
-  // Listeners WebSocket (P2P)
-  const handleProposalReceived = useCallback((data: ProposalReceivedData) => {
-    setBetsRef.current((prev) => [...prev, data.newProposal]);
-  }, []);
-  const handleProposalAccepted = useCallback((data: ProposalAcceptedData) => {
-    setBetsRef.current((prev) =>
-      prev.map((bet) =>
-        bet.id === data.proposalId ? { ...bet, status: "accepted" } : bet,
-      ),
-    );
-  }, []);
-  const handleProposalRejected = useCallback((data: ProposalRejectedData) => {
-    setBetsRef.current((prev) =>
-      prev.filter((bet) => bet.id !== data.proposalId),
-    );
-  }, []);
-  const handleBetProposalUpdate = useCallback((data: BetProposalUpdateData) => {
-    setBetsRef.current((prev) =>
-      prev.map((bet) =>
-        bet.id === data.proposalId ? { ...bet, ...data.updates } : bet,
-      ),
-    );
-  }, []);
-  const handlePagoProposed = useCallback((data: PagoProposedData) => {
-    setBetsRef.current((prev) => [...prev, data.newBet]);
-  }, []);
-
-  useWebSocketListener("proposal:received", handleProposalReceived);
-  useWebSocketListener("proposal:accepted", handleProposalAccepted);
-  useWebSocketListener("proposal:rejected", handleProposalRejected);
-  useWebSocketListener("bet_proposal_update", handleBetProposalUpdate);
-  useWebSocketListener("pago_proposed", handlePagoProposed);
 
   // Cargar mis apuestas
   useEffect(() => {
@@ -301,9 +241,6 @@ export default function UserBets() {
             />
           </div>
         </div>
-
-        {/* Notificaciones Importantes */}
-        <ProposalNotifications />
 
         {/* MAIN GRID: 2 COLUMNAS */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

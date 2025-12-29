@@ -5,8 +5,7 @@ interface NotificationPayload {
   type:
     | "betting_window_open"
     | "betting_window_close"
-    | "fight_result"
-    | "pago_proposal";
+    | "fight_result";
   title: string;
   body: string;
   data: {
@@ -115,7 +114,6 @@ class PushNotificationService {
       icon: "/icon-192x192.png",
       badge: "/icon-96x96.png",
       data: payload.data,
-      requireInteraction: payload.type === "pago_proposal", // Keep PAGO proposals visible
     });
   }
 
@@ -129,17 +127,6 @@ class PushNotificationService {
       title: "🟢 Ventana de Apuestas Abierta",
       body: "Nueva pelea disponible para apostar",
       data: { eventId, fightId, url: `/events/${eventId}` },
-    };
-
-    this.showLocalNotification(payload);
-  }
-
-  async notifyPagoProposal(betId: string, amount: number): Promise<void> {
-    const payload: NotificationPayload = {
-      type: "pago_proposal",
-      title: "💰 Propuesta de PAGO",
-      body: `Propuesta de $${amount.toLocaleString()} recibida`,
-      data: { betId, url: "/profile/bets" },
     };
 
     this.showLocalNotification(payload);

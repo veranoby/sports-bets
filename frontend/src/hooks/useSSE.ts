@@ -24,8 +24,6 @@ export enum SSEEventType {
   NEW_BET = "NEW_BET",
   BET_MATCHED = "BET_MATCHED",
   BET_CANCELLED = "BET_CANCELLED",
-  PAGO_PROPOSAL = "PAGO_PROPOSAL",
-  DOY_PROPOSAL = "DOY_PROPOSAL",
   PROPOSAL_ACCEPTED = "PROPOSAL_ACCEPTED",
   PROPOSAL_REJECTED = "PROPOSAL_REJECTED",
   PROPOSAL_TIMEOUT = "PROPOSAL_TIMEOUT",
@@ -101,16 +99,6 @@ type FightStatusEventData = {
   [key: string]: unknown;
 };
 
-type ProposalEventData = {
-  id?: string;
-  fightId?: string;
-  amount?: number;
-  side?: "red" | "blue";
-  proposerId?: string;
-  type?: "PAGO" | "DOY";
-  [key: string]: unknown;
-};
-
 const fightStatuses: Fight["status"][] = [
   "upcoming",
   "betting",
@@ -138,9 +126,6 @@ const isFightStatusEventData = (
     fightStatuses.includes(value.status as Fight["status"])
   );
 };
-
-const isProposalEventData = (value: unknown): value is ProposalEventData =>
-  isRecord(value);
 
 export type ConnectionStatus =
   | "connecting"
@@ -469,13 +454,10 @@ export function useFightSSE(fightId?: string) {
     SSEEventType.BETTING_WINDOW_OPENED,
     SSEEventType.BETTING_WINDOW_CLOSED,
     SSEEventType.NEW_BET,
-    SSEEventType.PAGO_PROPOSAL,
-    SSEEventType.DOY_PROPOSAL,
   ]);
 
   const [fightData, setFightData] = useState<FightStatusEventData | null>(null);
   const [bettingWindow, setBettingWindow] = useState<boolean>(false);
-  const [proposals, setProposals] = useState<ProposalEventData[]>([]);
 
   useEffect(() => {
     if (sse.status !== "connected") return;
@@ -501,22 +483,6 @@ export function useFightSSE(fightId?: string) {
           setBettingWindow(false);
         }
       }),
-
-      sse.subscribe(SSEEventType.PAGO_PROPOSAL, (event) => {
-        if (!fightId || event.metadata?.fightId === fightId) {
-          if (isProposalEventData(event.data)) {
-            setProposals((prev) => [...prev, { ...event.data, type: "PAGO" }]);
-          }
-        }
-      }),
-
-      sse.subscribe(SSEEventType.DOY_PROPOSAL, (event) => {
-        if (!fightId || event.metadata?.fightId === fightId) {
-          if (isProposalEventData(event.data)) {
-            setProposals((prev) => [...prev, { ...event.data, type: "DOY" }]);
-          }
-        }
-      }),
     ];
 
     return () => {
@@ -528,8 +494,6 @@ export function useFightSSE(fightId?: string) {
     ...sse,
     fightData,
     bettingWindow,
-    proposals,
-    clearProposals: () => setProposals([]),
   };
 }
 

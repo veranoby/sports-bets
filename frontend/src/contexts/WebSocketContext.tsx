@@ -2,7 +2,6 @@
 // ========================================================================
 //
 // ⚠️  USAGE RESTRICTION: This WebSocket context is ONLY for betting features
-// - PAGO/DOY bet proposals and responses
 // - Real-time betting workflows requiring bidirectional communication
 // - Betting timeouts and notifications
 //

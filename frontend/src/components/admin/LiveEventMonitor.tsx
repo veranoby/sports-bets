@@ -16,7 +16,7 @@ interface StreamViewerData {
 interface BetData {
   betId: string;
   amount: number;
-  type: "PAGO" | "DOY";
+  side: "red" | "blue";
 }
 
 const LiveEventMonitor: React.FC = () => {
@@ -54,10 +54,7 @@ const LiveEventMonitor: React.FC = () => {
     }
 
     const betEvent = sseState.bets?.lastEvent;
-    if (
-      betEvent &&
-      (betEvent.type === "NEW_BET" || betEvent.type === "PAGO_PROPOSAL")
-    ) {
+    if (betEvent && betEvent.type === "NEW_BET") {
       setLatestBet(betEvent.data as BetData);
     }
   }, [sseState]);
@@ -127,7 +124,7 @@ const LiveEventMonitor: React.FC = () => {
           {latestBet ? (
             <div className="p-2 bg-gray-50 rounded">
               <span>
-                {latestBet.type} of ${latestBet.amount}
+                New bet of ${latestBet.amount} on {latestBet.side}
               </span>
             </div>
           ) : (

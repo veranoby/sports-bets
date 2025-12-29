@@ -155,7 +155,7 @@ export const fightsAPI = {
   delete: (id: string) => apiClient.delete(`/fights/${id}`),
 };
 
-// ✅ BETS API COMPLETA CON MÉTODOS PAGO/DOY
+// ✅ BETS API COMPLETA
 export const betsAPI = {
   getMyBets: (params?: {
     status?: string;
@@ -173,7 +173,6 @@ export const betsAPI = {
     amount: number;
     ratio?: number;
     isOffer?: boolean;
-    type?: "pago" | "doy";
   }) => apiClient.post("/bets", data),
 
   accept: (betId: string) => apiClient.post(`/bets/${betId}/accept`),
@@ -182,15 +181,6 @@ export const betsAPI = {
 
   getStats: () => apiClient.get("/bets/stats"),
 
-  // 🎯 MÉTODOS PAGO/DOY AÑADIDOS
-  proposePago: (betId: string, pagoAmount: number) =>
-    apiClient.post(`/bets/${betId}/propose-pago`, { pagoAmount }),
-
-  acceptPago: (betId: string) => apiClient.put(`/bets/${betId}/accept-pago`),
-
-  rejectPago: (betId: string) => apiClient.put(`/bets/${betId}/reject-pago`),
-
-  getPendingProposals: () => apiClient.get("/bets/pending-proposals"),
   getCompatibleBets: (params: {
     fightId: string;
     side: "red" | "blue";

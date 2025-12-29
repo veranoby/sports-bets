@@ -6,7 +6,6 @@
 //
 // Real-time architecture per SDD (brain/sdd_system.json:20-36):
 // SSE for reads (fight updates, bet creation, general event updates),
-// WebSocket for bidirectional (PAGO/DOY only)
 
 import { useState, useEffect, useCallback, memo } from "react";
 import {
@@ -31,9 +30,8 @@ import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import EmptyState from "../../components/shared/EmptyState";
 import SubscriptionGuard from "../../components/shared/SubscriptionGuard";
-import { useWebSocketListener } from "../../hooks/useWebSocket";
 import HLSPlayer from "../../components/streaming/HLSPlayer";
-import useSSE, { SSEEventType } from "../../hooks/useSSE";
+import useSSE from "../../hooks/useSSE";
 
 // Tipos TypeScript
 interface Fight {
@@ -47,59 +45,6 @@ interface Fight {
   redFighter?: string;
   blueFighter?: string;
 }
-
-type ProposalPayload = {
-  id?: string;
-  fightId?: string;
-  amount?: number;
-  side?: "red" | "blue";
-  proposerId?: string;
-  type?: "PAGO" | "DOY";
-  [key: string]: unknown;
-};
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null;
-
-const isProposalPayload = (value: unknown): value is ProposalPayload => {
-  if (!isRecord(value)) {
-    return false;
-  }
-
-  if (
-    value.type !== undefined &&
-    value.type !== "PAGO" &&
-    value.type !== "DOY"
-  ) {
-    return false;
-  }
-
-  if (value.amount !== undefined && typeof value.amount !== "number") {
-    return false;
-  }
-
-  if (
-    value.side !== undefined &&
-    value.side !== "red" &&
-    value.side !== "blue"
-  ) {
-    return false;
-  }
-
-  if (value.id !== undefined && typeof value.id !== "string") {
-    return false;
-  }
-
-  if (value.fightId !== undefined && typeof value.fightId !== "string") {
-    return false;
-  }
-
-  if (value.proposerId !== undefined && typeof value.proposerId !== "string") {
-    return false;
-  }
-
-  return true;
-};
 
 interface Bet {
   id: string;
@@ -879,32 +824,6 @@ const LiveEvent = () => {
       unsubscribe();
     };
   }, [eventId, status, subscribeToEvents]);
-
-  // ✅ SDD COMPLIANCE: WebSocket ONLY for PAGO/DOY proposals (bidirectional with timeout)
-  // All other real-time updates use SSE per SDD specification (brain/sdd_system.json:20-36)
-
-  // ✅ WebSocket listeners - ONLY for PAGO/DOY proposals (bidirectional required)
-  const handlePagoProposal = useCallback((payload: unknown) => {
-    if (!isProposalPayload(payload)) {
-      console.warn("Ignoring malformed PAGO proposal payload", payload);
-      return;
-    }
-    // TODO: implement bidirectional handling for PAGO proposals
-  }, []);
-
-  const handleDoyProposal = useCallback((payload: unknown) => {
-    if (!isProposalPayload(payload)) {
-      console.warn("Ignoring malformed DOY proposal payload", payload);
-      return;
-    }
-    // TODO: implement bidirectional handling for DOY proposals
-  }, []);
-
-  useWebSocketListener("pago_proposal", handlePagoProposal, [
-    handlePagoProposal,
-  ]);
-
-  useWebSocketListener("doy_proposal", handleDoyProposal, [handleDoyProposal]);
 
   // ✅ Load data on mount - only depend on eventId to avoid infinite loop
   useEffect(() => {

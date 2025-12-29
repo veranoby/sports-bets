@@ -24,12 +24,6 @@ const EditBetModal: React.FC<EditBetModalProps> = ({
   // State for editable fields
   const [amount, setAmount] = useState(bet.amount.toString());
   const [side, setSide] = useState<"red" | "blue">(bet.side as "red" | "blue");
-  const [betType, setBetType] = useState<"flat" | "doy">(
-    bet.betType as "flat" | "doy",
-  );
-  const [doyAmount, setDoyAmount] = useState(
-    bet.terms?.doyAmount?.toString() || "",
-  );
 
   // Check if bet can be edited (should be pending)
   const canEdit = bet.status === "pending";
@@ -50,27 +44,10 @@ const EditBetModal: React.FC<EditBetModalProps> = ({
       const updateData: {
         amount: number;
         side: "red" | "blue";
-        betType: "flat" | "doy";
-        terms?: {
-          ratio?: number;
-          isOffer?: boolean;
-          pagoAmount?: number;
-          doyAmount?: number;
-          proposedBy?: string;
-        };
       } = {
         amount: Number(amount),
         side,
-        betType,
       };
-
-      // Add DOY amount if bet type is DOY
-      if (betType === "doy" && doyAmount) {
-        updateData.terms = {
-          ...bet.terms,
-          doyAmount: Number(doyAmount),
-        };
-      }
 
       // Send update request
       const response = await updateBet(bet.id, updateData);
@@ -129,10 +106,6 @@ const EditBetModal: React.FC<EditBetModalProps> = ({
                   <p className="font-medium">
                     {bet.side === "red" ? "🔴 Rojo" : "🔵 Azul"}
                   </p>
-                </div>
-                <div>
-                  <span className="text-gray-500">Tipo:</span>
-                  <p className="font-medium capitalize">{bet.betType}</p>
                 </div>
                 <div>
                   <span className="text-gray-500">Estado:</span>
@@ -198,71 +171,6 @@ const EditBetModal: React.FC<EditBetModalProps> = ({
                   </button>
                 </div>
               </div>
-
-              {/* Bet Type */}
-              <div>
-                <label className="block text-gray-700 mb-1 font-medium">
-                  Tipo de Apuesta <span className="text-red-500">*</span>
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setBetType("flat");
-                      setDoyAmount(""); // Clear DOY amount when switching to flat
-                    }}
-                    className={`flex items-center justify-center gap-2 py-3 rounded-lg transition-all duration-200 ${
-                      betType === "flat"
-                        ? "bg-green-100 border-2 border-green-500 text-green-700 font-medium"
-                        : "bg-gray-100 border border-gray-300 text-gray-700 hover:bg-gray-200"
-                    }`}
-                    disabled={!canEdit || loading}
-                  >
-                    <div className="w-4 h-4 bg-green-500 rounded-full"></div>
-                    <span>Plana</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setBetType("doy")}
-                    className={`flex items-center justify-center gap-2 py-3 rounded-lg transition-all duration-200 ${
-                      betType === "doy"
-                        ? "bg-yellow-100 border-2 border-yellow-500 text-yellow-700 font-medium"
-                        : "bg-gray-100 border border-gray-300 text-gray-700 hover:bg-gray-200"
-                    }`}
-                    disabled={!canEdit || loading}
-                  >
-                    <div className="w-4 h-4 bg-yellow-500 rounded-full"></div>
-                    <span>DOY</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* DOY Amount - Only show if bet type is DOY */}
-              {betType === "doy" && (
-                <div>
-                  <label className="block text-gray-700 mb-1 font-medium">
-                    Monto DOY <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input
-                      type="number"
-                      value={doyAmount}
-                      onChange={(e) => setDoyAmount(e.target.value)}
-                      className="w-full pl-10 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                      min="0.01"
-                      step="0.01"
-                      required
-                      disabled={!canEdit || loading}
-                      placeholder="Ingrese monto DOY"
-                    />
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Monto adicional que recibirás si ganas (mínimo debe ser
-                    mayor al monto principal)
-                  </p>
-                </div>
-              )}
             </div>
 
             {/* Action Buttons */}

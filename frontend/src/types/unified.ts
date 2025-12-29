@@ -59,16 +59,11 @@ export interface UnifiedBet {
   potentialWin: number;
   createdAt: Date | string;
   updatedAt: Date;
-  betType?: "flat" | "doy";
-  proposalStatus?: "none" | "pending" | "accepted" | "rejected";
   parentBetId?: string;
   matchedWith?: string;
   terms?: {
     ratio: number;
     isOffer: boolean;
-    pagoAmount?: number;
-    doyAmount?: number;
-    proposedBy?: string;
   };
   fight?: Fight;
   user?: User;

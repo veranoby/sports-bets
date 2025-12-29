@@ -418,7 +418,6 @@ export function useBets() {
       amount: number;
       ratio?: number;
       isOffer?: boolean;
-      betType?: "flat" | "doy";
       parentBetId?: string;
     }) => {
       return execute(() => apiClient.post("/bets", betData));
@@ -432,13 +431,9 @@ export function useBets() {
       betData: {
         amount?: number;
         side?: "red" | "blue";
-        betType?: "flat" | "doy";
         terms?: {
           ratio?: number;
           isOffer?: boolean;
-          pagoAmount?: number;
-          doyAmount?: number;
-          proposedBy?: string;
         };
       },
     ) => {
@@ -491,22 +486,6 @@ export function useBets() {
     [execute],
   );
 
-  const acceptPago = useCallback(
-    (betId: string) =>
-      execute(() => apiClient.put(`/bets/${betId}/accept-pago`)),
-    [execute],
-  );
-
-  const rejectPago = useCallback(
-    (betId: string) =>
-      execute(() => apiClient.put(`/bets/${betId}/reject-pago`)),
-    [execute],
-  );
-
-  const getPendingProposals = useCallback(() => {
-    return execute(() => apiClient.get("/bets/pending-proposals"));
-  }, [execute]);
-
   return {
     bets: data?.bets || [],
     total: data?.total || 0,
@@ -519,9 +498,6 @@ export function useBets() {
     cancelBet,
     getBetsStats,
     getCompatibleBets,
-    getPendingProposals,
-    acceptPago,
-    rejectPago,
     updateBet,
   };
 }

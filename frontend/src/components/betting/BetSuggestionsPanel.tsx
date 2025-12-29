@@ -9,7 +9,6 @@ interface BetSuggestionsPanelProps {
   side: "red" | "blue";
   amount: number;
   onSuggestionSelect: (bet: BetData) => void;
-  onProposePago: (bet: BetData) => void;
 }
 
 const BetSuggestionsPanel: React.FC<BetSuggestionsPanelProps> = ({
@@ -17,7 +16,6 @@ const BetSuggestionsPanel: React.FC<BetSuggestionsPanelProps> = ({
   side,
   amount,
   onSuggestionSelect,
-  onProposePago,
 }) => {
   const { getCompatibleBets } = useBets();
   const [suggestions, setSuggestions] = useState<BetData[]>([]);
@@ -96,14 +94,6 @@ const BetSuggestionsPanel: React.FC<BetSuggestionsPanelProps> = ({
                   <span className="font-medium text-gray-900">
                     ${bet.amount} · {bet.side === "red" ? "🔴 Rojo" : "🔵 Azul"}
                   </span>
-                  <span className="text-xs px-2 py-1 bg-gray-200 text-gray-700 rounded-full ml-2">
-                    {bet.betType}
-                  </span>
-                  {bet.betType === "doy" && (
-                    <span className="text-xs px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full">
-                      DOY
-                    </span>
-                  )}
                   {bet.status === "pending" && (
                     <span className="text-xs px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full">
                       Pendiente
@@ -116,25 +106,13 @@ const BetSuggestionsPanel: React.FC<BetSuggestionsPanelProps> = ({
               </div>
 
               <div className="flex gap-2 mt-2 sm:mt-0">
-                {bet.betType === "flat" && (
-                  <button
-                    onClick={() => handleAcceptBet(bet)}
-                    className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm rounded-md transition-colors flex items-center gap-1"
-                  >
-                    <span>✅</span>
-                    Aceptar
-                  </button>
-                )}
-
-                {bet.betType === "flat" && (
-                  <button
-                    onClick={() => onProposePago(bet)}
-                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-md transition-colors flex items-center gap-1"
-                  >
-                    <span>🤝</span>
-                    Proponer PAGO
-                  </button>
-                )}
+                <button
+                  onClick={() => handleAcceptBet(bet)}
+                  className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm rounded-md transition-colors flex items-center gap-1"
+                >
+                  <span>✅</span>
+                  Aceptar
+                </button>
               </div>
             </div>
           ))}

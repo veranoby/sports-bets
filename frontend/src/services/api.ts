@@ -399,15 +399,6 @@ export const betsAPI = {
   }) => {
     return apiCall("get", "/bets/compatible", params);
   },
-  acceptPago: async (betId: string) => {
-    return apiCall("put", `/bets/${betId}/accept-pago`);
-  },
-  rejectPago: async (betId: string) => {
-    return apiCall("put", `/bets/${betId}/reject-pago`);
-  },
-  getPendingProposals: async () => {
-    return apiCall("get", "/bets/pending-proposals");
-  },
   // Admin-specific function to get all bets (not just user's bets)
   getAllAdmin: async (params?: {
     userId?: string;

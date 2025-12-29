@@ -127,7 +127,6 @@ export const mockApiResponses = {
       userId: "4",
       fightId: "1",
       amount: 100,
-      type: "pago",
       status: "pending",
     },
   ],
