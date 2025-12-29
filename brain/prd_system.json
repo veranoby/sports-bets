@@ -155,37 +155,35 @@
     },
     "betting_system": {
       "priority": "P0",
+      "status": "✅ REFACTORED 2025-12-29 - Simplified betting architecture with 7-state Fight system",
       "requirements": [
-        "Modelo de apuestas P2P (usuario contra usuario).",
-        "Ventanas de apuestas temporales estrictas (solo se puede apostar en estado 'betting').",
-        "Sistema de propuestas PAGO/DOY con timeout de 3 minutos vía WebSocket."
+        "Modelo de apuestas P2P (usuario contra usuario) - SIMPLIFICADO.",
+        "Ventanas de apuestas controladas por Fight.status='betting_open' (no temporal manual).",
+        "Sistema de propuestas automático: auto-match en cantidad exacta, sin WebSocket bidireccional."
       ],
       "bet_types": {
-        "flat": "Apuesta simétrica: $50 vs $50. Auto-match si existe contraparte.",
-        "doy": "Ofrece ventaja: Gana $40, Pierde $50. Ventaja unilateral visible para contrarios.",
-        "pago": "Propuesta respuesta: Propone pagar $40 si pierde, cobra $50 si gana. Requiere aceptación."
+        "fixed_amount": "Montos fijos: [5, 10, 20, 50, 100, 200, 500]. Auto-match inmediato si existe contraparte con mismo monto y lado opuesto."
       },
       "workflows": {
-        "flat_auto_match": "Usuario crea flat $50 rojo → Sistema detecta flat $50 azul → Auto-empareja → Estado: active",
-        "flat_manual_accept": "Usuario crea flat $50 rojo → Usuario2 ve sugerencia → Acepta → Estado: active",
-        "doy_creation": "Usuario crea DOY: Apuesta $50, DOY $40 (ventaja) → Visible en panel → Usuario2 acepta → Estado: active",
-        "pago_proposal": "Usuario1 flat $50 rojo → Usuario2 propone PAGO $40 → Usuario1 recibe notificación → Acepta/Rechaza",
-        "panel_sugerencias": "Al escribir monto, mostrar apuestas contrarias en rango ±20% (ej: $40-$60 si escribió $50)"
+        "flat_auto_match_2025_12_29": "Usuario crea apuesta $50 rojo → Sistema busca $50 azul pendiente → Auto-empareja → Estado: active. Sin DOY/PAGO.",
+        "no_manual_proposals": "Sin sistema PAGO/DOY. Sin WebSocket bidireccional. Auto-match automático solo."
       },
       "estados_apuestas": {
-        "pending": "Creada, editable, visible en panel sugerencias. frozen_amount NO bloqueado aún.",
-        "pending_pago": "Propuesta PAGO enviada, esperando aceptación/rechazo de usuario original.",
-        "active": "Confirmada por ambos, frozen_amount bloqueado. No editable.",
-        "completed": "Pelea terminada, resultado aplicado, frozen_amount liberado/transferido.",
-        "cancelled": "Cancelada antes de match por usuario o sistema."
+        "pending": "Creada, visible en panel. frozen_amount bloqueado en wallet. Esperando match exacto.",
+        "active": "Auto-emparejada con contraparte. frozen_amount bloqueado. No editable.",
+        "won": "Pelea completada, usuario ganó. Payout realizado (5% comisión del ganador).",
+        "lost": "Pelea completada, usuario perdió. frozen_amount transferido al ganador (menos comisión).",
+        "cancelled": "Cancelada antes de match por usuario o sistema. frozen_amount devuelto."
       },
       "business_rules": {
+        "fixed_amounts_2025_12_29": "Montos fijos únicamente: 5, 10, 20, 50, 100, 200, 500 USD. Validación PostgreSQL CHECK.",
         "comision": "5% del ganador (no del perdedor). Ejemplo: gana $50 → cobra $47.50.",
         "empate": "Devolver frozen_amount completo a ambos apostadores.",
-        "fight_cancelada": "Devolver frozen_amount completo a ambos apostadores (igual que empate).",
-        "edicion": "Solo editable si status=pending. Bloqueada si active.",
-        "multiple_bets_per_user": "Un usuario puede tener múltiples apuestas activas en mismo evento/pelea.",
-        "auto_match_only_flat": "Auto-match solo para flat. DOY y PAGO requieren aceptación manual."
+        "fight_cancelada": "Devolver frozen_amount completo a ambos apostadores.",
+        "edicion": "NO editable después de creación. Usuario debe cancelar y recrear.",
+        "multiple_bets_per_user": "✅ HABILITADO - Un usuario puede tener múltiples apuestas activas en mismo evento/pelea.",
+        "auto_match_only": "Auto-match automático en cantidad exacta. Sin aceptación manual requerida.",
+        "websocket_removed": "WebSocket completamente removido para apuestas. Solo SSE para notificaciones."
       }
     },
     "subscription_system": {

@@ -30,11 +30,10 @@
           "Stream status changes (STREAM_STARTED, STREAM_STOPPED) (IMPLEMENTADO 2025-12-10)"
         ],
         "websocket_usage": [
-          "SOLO para propuestas PAGO/DOY (bidirectional required)",
-          "Bidireccional con timeout de 3 minutos",
-          "No operaciones de billetera",
-          "No sugerencias dinámicas",
-          "Temporal: LiveEvent read operations (hasta crear endpoint público SSE)"
+          "🔴 ELIMINATED 2025-12-29 - WebSocket completely removed for betting system",
+          "PAGO/DOY proposals no longer supported",
+          "All betting operations now use SSE (one-way server→client)",
+          "Auto-matching handled automatically by PostgreSQL transaction on fixed amounts"
         ],
         "streaming_architecture_2025_12_11": {
           "pipeline": "OBS → Nginx RTMP (port 1935) → HLS segments (/var/www/hls) → Nginx HTTP (port 80) → Frontend HLSPlayer",
@@ -713,22 +712,23 @@
     }
   },
   "automation_workflows": {
-    "fight_temporal_transitions": {
-      "rule": "Progresión estricta: upcoming → betting → live → completed",
-      "validation": "No se pueden omitir estados ni retroceder",
-      "enforcement": "Validación backend + restricciones de UI"
+    "fight_temporal_transitions_7state": {
+      "rule": "✅ UPDATED 2025-12-29: Progresión estricta a 7 estados: draft → scheduled → ready → betting_open → in_progress → completed/cancelled",
+      "validation": "No se pueden omitir estados ni retroceder. PostgreSQL enforced via canTransitionTo() method",
+      "enforcement": "Validación backend en Fight.canTransitionTo() + restricciones de UI frontend"
     },
     "betting_windows": {
-      "rule": "Apuestas SOLO aceptadas durante status='betting'",
-      "opening": "El operador abre la ventana manualmente",
-      "closing": "Cierre automático o manual antes de la transmisión en vivo",
-      "validation": "Validación temporal en el lado del servidor"
+      "rule": "Apuestas SOLO aceptadas durante status='betting_open' (Fight.status = 'betting_open')",
+      "opening": "Automático cuando Fight.status cambia a 'betting_open'",
+      "closing": "Automático cuando Fight.status cambia de 'betting_open' a otro estado",
+      "validation": "Auto-match automático en PostgreSQL cuando existe bet pendiente con monto exacto y lado opuesto"
     },
-    "pago_doy_proposals": {
-      "mechanism": "Comunicación bidireccional WebSocket",
-      "timeout": "3 minutos para la aceptación",
-      "scope": "MÍNIMO - solo para propuestas",
-      "restriction": "No operaciones de billetera vía WebSocket"
+    "betting_system_fixed_amounts_2025_12_29": {
+      "status": "✅ IMPLEMENTED - Simplified betting with fixed amounts only",
+      "amounts": "[5, 10, 20, 50, 100, 200, 500] - PostgreSQL CHECK constraint enforced",
+      "mechanism": "🔴 No PAGO/DOY proposals. Auto-match automático cuando existe contrapart exacta.",
+      "websocket_elimination": "WebSocket completamente eliminado. SSE solo para notificaciones (one-way).",
+      "restriction": "Sin comunicación bidireccional. Todo matching manejado serverside."
     },
     "operator_hierarchy": {
       "principle": "Los operadores no pueden gestionar a sus pares o superiores",

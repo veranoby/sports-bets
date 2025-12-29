@@ -3,7 +3,7 @@
     "purpose": "Comprehensive API endpoint reference for Galleros.Net platform",
     "created": "2025-09-27",
     "version": "2.6",
-    "last_updated": "2025-12-12 - Streaming SSE normalization: Added normalized direct event types STREAM_PAUSED/STREAM_RESUMED. Backend now uses consistent direct event types for all streaming operations. Added /streaming/pause and /streaming/resume endpoints. Maintained backward compatibility with legacy STREAM_STATUS_UPDATE wrapper events.",
+    "last_updated": "2025-12-29 - Betting UX Refactor Complete: Updated Fight status endpoints to reflect 7-state system (draft, scheduled, ready, betting_open, in_progress, completed, cancelled). Removed PAGO/DOY endpoints. Documented fixed bet amounts [5,10,20,50,100,200,500]. Updated SSE events for 7-state Fight lifecycle. Streaming SSE normalization maintained from previous update.",
     "streaming_infrastructure_selected": "Nginx RTMP (self-managed) + PostgreSQL local (OPTION B.1)",
     "streaming_platform_selected": "Nginx RTMP (self-managed) + PostgreSQL local (OPTION B.1 selected 2025-11-20)",
     "environment_variables_required": {
@@ -15,6 +15,7 @@
     "critical_note": "NEVER change these endpoints without updating this documentation",
     "validation_command": "npm run test:api-endpoints",
     "changelog": {
+      "v2.7": "2025-12-29 - Betting UX Refactor Complete: Updated Fight.status endpoint to support 7-state system (draft, scheduled, ready, betting_open, in_progress, completed, cancelled). Removed DOY/PAGO proposal endpoints (no longer supported). Updated Bet endpoints to support fixed amounts only [5,10,20,50,100,200,500] with auto-matching. Documented PostgreSQL CHECK constraint on bet amounts. 12 commits across SQL migrations, backend models, frontend components, and cleanup tasks.",
       "v2.6": "2025-12-12 - Streaming SSE normalization: Added normalized direct event types STREAM_PAUSED/STREAM_RESUMED to SSEEventType enum. Backend now uses consistent direct event types for all streaming operations (start, stop, pause, resume). Added comprehensive documentation for all streaming SSE events. Maintained backward compatibility with legacy STREAM_STATUS_UPDATE wrapper events. Updated EventList to handle pause/resume events for real-time updates.",
       "v2.5": "2025-12-11 - Streaming live implementation: Added POST /api/streaming/auth, /unpublish for Nginx RTMP auth. Made /stream/start, /stream/stop idempotent. Added .m3u8 extension to streamUrl.",
       "v2.4": "2025-12-10 - Added PUT /fights/:id endpoint for editing fight details (redCorner, blueCorner, weight, notes). Only allows editing when fight.status='upcoming' to protect betting integrity. Added EditFightModal.tsx component. Frontend auto-refreshes after fight updates via EventDetail.tsx setTimeout fetch. Added process.env cleanup and PRE_HANDOFF_VALIDATION_PROTOCOL to multi_ai_coordination_strategy.json. Implemented by Qwen 3 Coder+ and Claude Sonnet 4.5. Commit: 2e6519ae",

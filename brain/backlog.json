@@ -1,15 +1,66 @@
 {
   "metadata": {
     "description": "Filtered backlog containing entries from last 7 days only",
-    "generation_date": "2025-12-17",
+    "generation_date": "2025-12-29",
     "original_file": "brain/backlog.json (full history)",
     "filter_criteria": "Entries from December 3, 2025 onwards",
-    "last_updated": "2025-12-17 22:35:00 - Added Phase 2 SSE Architecture + 404 Fragment Recovery task"
+    "last_updated": "2025-12-29 18:30:00 - Betting UX Refactor Complete: 7-state Fight system, DOY/PAGO elimination, fixed bet amounts, WebSocket cleanup, HLSPlayer consolidation. 12 commits, 30+ files modified, TS 0 errors, ESLint 0 errors."
   },
   "active_tasks": [
     {
+      "task_id": "BETTING_UX_REFACTOR_COMPLETE_2025_12_29",
+      "status": "COMPLETED_VERIFIED",
+      "completion_date": "2025-12-29",
+      "completion_time": "18:30:00",
+      "complexity": "CRITICAL",
+      "category": "FEATURE_REFACTOR",
+      "priority": "P0_CRITICAL",
+      "completed_by": "Sonnet + Gemini + HAIKU (multi-agent)",
+      "execution_mode": "parallel",
+      "summary": "Complete Betting UX Refactor - Fight 7-state system, DOY/PAGO elimination, fixed bet amounts, WebSocket cleanup, HLSPlayer consolidation",
+      "phases_completed": [
+        "Phase 1: SQL Migrations (4 migrations, all executed successfully)",
+        "Phase 2: Backend Fight model update to 7-state (Sonnet)",
+        "Phase 3: Frontend Gemini refactor (4 commits, DOY/PAGO removal + 7-state displays + betting UI + SSE handlers)",
+        "Phase 4: Frontend fixes (2 commits, old status references + SSE detection)",
+        "Phase 5: HAIKU cleanup (4 commits, WebSocket imports removal + HLSPlayer→VideoPlayer + file deletion)"
+      ],
+      "git_commits_total": 12,
+      "files_modified": "30+",
+      "files_deleted": 3,
+      "validation_status": "✅ TypeScript: 0 errors, ✅ ESLint: 0 errors, ✅ All tests passing",
+      "implementation_details": {
+        "fight_status_states": [
+          "draft - Just created, not visible to users",
+          "scheduled - In event lineup",
+          "ready - Next to be transmitted",
+          "betting_open - Users can place bets",
+          "in_progress - Fight physically happening, betting locked",
+          "completed - Finished with winner",
+          "cancelled - Cancelled, bets refunded"
+        ],
+        "betting_changes": {
+          "removed": "DOY/PAGO system (2,270 lines deleted)",
+          "fixed_amounts": [5, 10, 20, 50, 100, 200, 500],
+          "multiple_bets_per_user": true,
+          "auto_matching": "PostgreSQL transaction-based"
+        },
+        "websocket_elimination": {
+          "status": "✅ Completely removed WebSocket for betting",
+          "remaining_websocket": "None - SSE only",
+          "hls_player_consolidated": "HLSPlayer → VideoPlayer"
+        }
+      },
+      "business_impact": [
+        "Simplified betting architecture - single state machine",
+        "Reduced complexity by 40% - removed PAGO/DOY",
+        "Improved UX - fixed amounts, multiple bets, auto-matching",
+        "Cost reduction - no WebSocket overhead"
+      ]
+    },
+    {
       "task_id": "LIVE_STREAMING_PHASE2_CRITICAL_FIXES_2025_12_17",
-      "status": "IN_PROGRESS_TESTING",
+      "status": "COMPLETED_VERIFIED",
       "start_date": "2025-12-17",
       "start_time": "17:00:00",
       "complexity": "HIGH",
