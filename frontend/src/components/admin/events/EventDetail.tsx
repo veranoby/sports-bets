@@ -19,7 +19,7 @@ import EditEventModal from "../../../components/admin/EditEventModal";
 import SSEErrorBoundary from "../../../components/admin/SSEErrorBoundary";
 import StatusChanger from "../../../components/admin/StatusChanger";
 import SetWinnerModal from "../../../components/admin/SetWinnerModal";
-import HLSPlayer from "../../../components/streaming/HLSPlayer";
+import VideoPlayer from "../../../components/streaming/VideoPlayer";
 import { useAdminSSE, AdminChannel } from "../../../hooks/useSSE";
 import type { SSEEvent } from "../../../hooks/useSSE";
 import FightsControlTab from "../../../components/admin/FightsControlTab";
@@ -664,24 +664,9 @@ const EventDetail: React.FC<EventDetailProps> = ({
               {eventDetailData.event.streamUrl &&
               (eventDetailData.event.hlsStatus === "ready" ||
                 eventDetailData.event.streamStatus === "connected") ? (
-                <HLSPlayer
-                  streamUrl={eventDetailData.event.streamUrl}
-                  autoplay={true}
-                  controls={true}
-                  muted={true}
-                  className="w-full aspect-video rounded-lg overflow-hidden"
-                  // ✅ ULTRA Low-latency HLS config (target: 3-5s total latency)
-                  hlsConfig={{
-                    startPosition: -1, // Force live edge on load
-                    liveSyncDurationCount: 2, // 2 segments from edge (2s with 1s fragments)
-                    liveMaxLatencyDurationCount: 3, // Max 3s behind live
-                    maxBufferLength: 4, // Minimal buffer (4s)
-                    maxMaxBufferLength: 8, // Max 8s buffer
-                    enableWorker: true,
-                    lowLatencyMode: true,
-                    backBufferLength: 0, // No old segments kept
-                    liveDurationInfinity: true, // Treat as infinite live stream
-                  }}
+                <VideoPlayer
+                  src={eventDetailData.event.streamUrl}
+                  streamId={eventDetailData.event.id}
                 />
               ) : (
                 <div className="w-full aspect-video rounded-lg overflow-hidden bg-gray-900 flex items-center justify-center text-white">

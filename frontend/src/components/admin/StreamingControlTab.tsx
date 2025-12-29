@@ -9,7 +9,7 @@ import {
   Pause,
   RotateCcw,
 } from "lucide-react";
-import HLSPlayer from "../../components/streaming/HLSPlayer";
+import VideoPlayer from "../../components/streaming/VideoPlayer";
 import { useSSEConnection } from "../../hooks/useSSEConnection";
 import { eventsAPI } from "../../services/api";
 import Card from "../../components/shared/Card";
@@ -217,7 +217,7 @@ const StreamingControlTab: React.FC<StreamingControlTabProps> = ({
         {/* Stream Player - 70% width */}
         <div className="lg:col-span-7 bg-black rounded-lg shadow-lg overflow-hidden">
           {streamUrl ? (
-            <HLSPlayer streamUrl={streamUrl} autoplay controls muted={false} />
+            <VideoPlayer src={streamUrl} streamId={eventId} />
           ) : (
             <div className="flex items-center justify-center h-full text-gray-400 p-12 text-center">
               <div>

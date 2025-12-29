@@ -581,7 +581,6 @@ const UserHeader = memo(() => {
     </div>
   );
 
-
   // 📄 Author's articles count (all statuses: draft, pending, published)
   useEffect(() => {
     const fetchPublished = async () => {

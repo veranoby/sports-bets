@@ -30,6 +30,7 @@ import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import EmptyState from "../../components/shared/EmptyState";
 import SubscriptionGuard from "../../components/shared/SubscriptionGuard";
+import VideoPlayer from "../../components/streaming/VideoPlayer";
 import useSSE, { SSEEventType } from "../../hooks/useSSE";
 import { Fight, Bet, EventData } from "../../types"; // Import global types
 import BettingPanelComponent from "../../components/user/BettingPanel"; // Import global BettingPanel
@@ -344,23 +345,9 @@ const StreamingContainer = memo(
     <div className="relative">
       {streamUrl && streamStatus === "connected" ? (
         <>
-          <HLSPlayer
-            streamUrl={streamUrl}
-            autoplay={true}
-            controls={true}
-            muted={true}
-            onError={(error) => console.error("HLS playback error:", error)}
-            hlsConfig={{
-              startPosition: -1,
-              liveSyncDurationCount: 2,
-              liveMaxLatencyDurationCount: 3,
-              maxBufferLength: 4,
-              maxMaxBufferLength: 8,
-              enableWorker: true,
-              lowLatencyMode: true,
-              backBufferLength: 0,
-              liveDurationInfinity: true,
-            }}
+          <VideoPlayer
+            src={streamUrl}
+            streamId={eventId}
           />
           {currentViewers !== undefined && (
             <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded z-10">

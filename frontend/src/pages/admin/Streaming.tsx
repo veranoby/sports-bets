@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import HLSPlayer from "../../components/streaming/HLSPlayer";
+import VideoPlayer from "../../components/streaming/VideoPlayer";
 import useStreamStatus from "../../hooks/useStreamStatus";
 import { eventsAPI } from "../../config/api"; // Assuming eventsAPI has stream control methods
 import { AlertTriangle, Play, Square, Wifi, Eye } from "lucide-react";
@@ -198,7 +198,7 @@ const AdminStreamingPage: React.FC<StreamingPageProps> = () => {
         {/* HLS Player Preview */}
         <div className="lg:col-span-2 bg-black rounded-lg overflow-hidden shadow-lg">
           {currentStreamUrl && (
-            <HLSPlayer streamUrl={currentStreamUrl} autoplay muted controls />
+            <VideoPlayer src={currentStreamUrl} streamId={eventId} />
           )}
           {!currentStreamUrl && (
             <div className="flex items-center justify-center h-full text-gray-400">
