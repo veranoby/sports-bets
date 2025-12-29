@@ -983,7 +983,7 @@ const EventDetail: React.FC<EventDetailProps> = ({
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {/* Conditional rendering based on fight status to enforce sequential workflow */}
-                  {selectedFight?.status === "upcoming" && (
+                  {(selectedFight?.status === "ready" || selectedFight?.status === "scheduled") && (
                     <button
                       onClick={handleOpenBetting}
                       disabled={
@@ -996,7 +996,7 @@ const EventDetail: React.FC<EventDetailProps> = ({
                       ABRIR APUESTAS
                     </button>
                   )}
-                  {selectedFight?.status === "betting" && (
+                  {selectedFight?.status === "betting_open" && (
                     <button
                       onClick={handleRegisterFightStart}
                       disabled={
@@ -1009,7 +1009,7 @@ const EventDetail: React.FC<EventDetailProps> = ({
                       INICIAR PELEA
                     </button>
                   )}
-                  {selectedFight?.status === "live" && (
+                  {selectedFight?.status === "in_progress" && (
                     <button
                       onClick={handleRegisterFightEnd}
                       disabled={

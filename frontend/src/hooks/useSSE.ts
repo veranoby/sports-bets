@@ -467,7 +467,7 @@ export function useFightSSE(fightId?: string) {
         if (!fightId || event.metadata?.fightId === fightId) {
           if (isFightStatusEventData(event.data)) {
             setFightData(event.data);
-            setBettingWindow(event.data.status === "betting");
+            setBettingWindow(event.data.status === "betting_open");
           }
         }
       }),
