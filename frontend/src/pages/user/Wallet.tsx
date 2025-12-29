@@ -35,7 +35,6 @@ import { Navigate } from "react-router-dom"; // Added Navigate import
 import { useWallet } from "../../hooks/useApi";
 import { useFeatureFlags } from "../../hooks/useFeatureFlags"; // Added useFeatureFlags import
 // ❌ ELIMINADO: import { getUserThemeClasses } from "../../contexts/UserThemeContext";
-import { useWebSocketListener } from "../../hooks/useWebSocket";
 
 // Componentes
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
@@ -250,17 +249,6 @@ const Wallet: React.FC = () => {
     }
   };
 
-  // ✅ LISTENER ESPECÍFICO DE WALLET (solo transaction_completed)
-  useWebSocketListener<Transaction>("transaction_completed", (transaction) => {
-    if (transaction) {
-      fetchTransactions();
-      const message =
-        transaction.type === "deposit"
-          ? `Depósito completado: ${transaction.amount}`
-          : `Retiro completado: ${transaction.amount}`;
-      console.log("Transacción completada:", message);
-    }
-  });
 
   if (loading && !refreshing) {
     return (

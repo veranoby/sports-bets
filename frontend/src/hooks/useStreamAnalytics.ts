@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { streamingAPI } from "../services/api";
-import { useWebSocketContext } from "../contexts/WebSocketContext";
 import type { StreamAnalytics, ViewerEvent } from "../types/streaming";
 
 interface UseStreamAnalyticsOptions {
@@ -24,7 +23,6 @@ export const useStreamAnalytics = (options: UseStreamAnalyticsOptions = {}) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const { isConnected, emit, addListener } = useWebSocketContext();
   const refreshIntervalRef = useRef<number | null>(null);
   const eventBuffer = useRef<ViewerEvent[]>([]);
   const componentMountedRef = useRef(true);
@@ -122,119 +120,6 @@ export const useStreamAnalytics = (options: UseStreamAnalyticsOptions = {}) => {
     }
   }, []);
 
-  useEffect(() => {
-    if (!realtime || !addListener || !emit || !eventId) return;
-
-    const handleAnalyticsUpdate = (data: Partial<StreamAnalytics>) => {
-      if (componentMountedRef.current) {
-        setAnalytics((prev) => (prev ? { ...prev, ...data } : null));
-      }
-    };
-
-    const handleViewerJoin = (data: {
-      userId: string;
-      viewerCount: number;
-    }) => {
-      if (componentMountedRef.current) {
-        setAnalytics((prev) =>
-          prev
-            ? {
-                ...prev,
-                currentViewers: data.viewerCount,
-                peakViewers: Math.max(prev.peakViewers, data.viewerCount),
-              }
-            : null,
-        );
-      }
-    };
-
-    const handleViewerLeave = (data: {
-      userId: string;
-      viewerCount: number;
-    }) => {
-      if (componentMountedRef.current) {
-        setAnalytics((prev) =>
-          prev
-            ? {
-                ...prev,
-                currentViewers: data.viewerCount,
-              }
-            : null,
-        );
-      }
-    };
-
-    const handleQualityChange = (data: {
-      quality: string;
-      viewerCount: number;
-    }) => {
-      if (componentMountedRef.current) {
-        setAnalytics((prev) =>
-          prev
-            ? {
-                ...prev,
-                qualityDistribution: {
-                  ...prev.qualityDistribution,
-                  [data.quality]:
-                    (prev.qualityDistribution[data.quality] || 0) + 1,
-                },
-              }
-            : null,
-        );
-      }
-    };
-
-    const handleStreamStatus = (data: {
-      status: string;
-      duration?: number;
-    }) => {
-      if (data.duration !== undefined && componentMountedRef.current) {
-        setAnalytics((prev) =>
-          prev ? { ...prev, duration: data.duration } : null,
-        );
-      }
-    };
-
-    const handleConnection = () => {
-      if (componentMountedRef.current) {
-        emit("join_stream", { eventId, streamId });
-        flushEventBuffer();
-      }
-    };
-
-    const handleDisconnection = () => {
-      // Context handles this
-    };
-
-    const cleanup = [
-      addListener("connect", handleConnection),
-      addListener("disconnect", handleDisconnection),
-      addListener(`stream:${eventId}:analytics`, handleAnalyticsUpdate),
-      addListener(`stream:${eventId}:viewer_join`, handleViewerJoin),
-      addListener(`stream:${eventId}:viewer_leave`, handleViewerLeave),
-      addListener(`stream:${eventId}:quality_change`, handleQualityChange),
-      addListener(`stream:${eventId}:status`, handleStreamStatus),
-    ];
-
-    if (isConnected) {
-      handleConnection();
-    }
-
-    return () => {
-      cleanup.forEach((fn) => fn());
-      if (eventId) {
-        emit("leave_stream", { eventId, streamId });
-      }
-    };
-  }, [
-    addListener,
-    emit,
-    eventId,
-    streamId,
-    realtime,
-    flushEventBuffer,
-    isConnected,
-  ]);
 
   useEffect(() => {
     if (!autoRefresh) return;
@@ -284,7 +169,6 @@ export const useStreamAnalytics = (options: UseStreamAnalyticsOptions = {}) => {
     analytics,
     loading,
     error,
-    isConnected,
     hasBufferedEvents: eventBuffer.current.length > 0,
     fetchAnalytics,
     trackEvent,

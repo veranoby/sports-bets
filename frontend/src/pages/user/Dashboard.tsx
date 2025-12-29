@@ -3,7 +3,6 @@ import { Calendar, Webcam, Zap, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useEvents, useBets } from "../../hooks/useApi";
-import { useWebSocketListener } from "../../hooks/useWebSocket";
 import { eventsAPI } from "../../services/api";
 import SubscriptionGuard from "../../components/shared/SubscriptionGuard";
 import { useFeatureFlags } from "../../hooks/useFeatureFlags";
@@ -110,27 +109,6 @@ const UserDashboard: React.FC = () => {
     loadUpcomingEvents();
   }, []);
 
-  // ✅ LISTENERS ESPECÍFICOS DE EVENTOS
-  useWebSocketListener(
-    "new_event",
-    useCallback(() => {
-      fetchEvents();
-    }, [fetchEvents]),
-  );
-
-  useWebSocketListener(
-    "event_started",
-    useCallback(() => {
-      fetchEvents();
-    }, [fetchEvents]),
-  );
-
-  useWebSocketListener(
-    "event_ended",
-    useCallback(() => {
-      fetchEvents();
-    }, [fetchEvents]),
-  );
 
   // ✅ Datos computados simplificados (solo eventos)
   const { liveEvents } = useMemo(() => {

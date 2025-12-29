@@ -24,14 +24,12 @@ import { toast } from "sonner"; // For toast notifications
 
 // ✅ FIX PRINCIPAL: useEvents en lugar de useEvent
 import { useEvents, useBets } from "../../hooks/useApi";
-import { useWebSocketContext } from "../../contexts/WebSocketContext";
 import { useFeatureFlags } from "../../hooks/useFeatureFlags";
 import { useAuth } from "../../contexts/AuthContext";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorMessage from "../../components/shared/ErrorMessage";
 import EmptyState from "../../components/shared/EmptyState";
 import SubscriptionGuard from "../../components/shared/SubscriptionGuard";
-import HLSPlayer from "../../components/streaming/HLSPlayer";
 import useSSE, { SSEEventType } from "../../hooks/useSSE";
 import { Fight, Bet, EventData } from "../../types"; // Import global types
 import BettingPanelComponent from "../../components/user/BettingPanel"; // Import global BettingPanel
@@ -409,9 +407,6 @@ const LiveEvent = () => {
   // Determinar si el usuario es venue
   const isVenueRole = user?.role === "venue";
 
-  // WebSocket context
-  const { isConnected, joinRoom, leaveRoom } = useWebSocketContext();
-
   // ✅ FIXED: Fetch individual event with proper error handling + DEEP DEBUG
   const loadEventData = useCallback(async () => {
     if (!eventId) {
@@ -445,14 +440,6 @@ const LiveEvent = () => {
       setLoading(false);
     }
   }, [eventId, fetchEventById]);
-
-  // ✅ WebSocket room management
-  useEffect(() => {
-    if (isConnected && eventId) {
-      joinRoom(eventId);
-      return () => leaveRoom(eventId);
-    }
-  }, [isConnected, eventId, joinRoom, leaveRoom]);
 
   // ✅ SSE listener for event-specific updates (read-only operations) using useSSE hook
   const apiBaseUrl =

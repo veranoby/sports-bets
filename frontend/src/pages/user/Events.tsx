@@ -16,7 +16,6 @@ import { useNavigate } from "react-router-dom";
 
 // Hooks y contextos
 import { useEvents } from "../../hooks/useApi";
-import { useWebSocketContext } from "../../contexts/WebSocketContext";
 import { eventsAPI } from "../../services/api";
 import SubscriptionGuard from "../../components/shared/SubscriptionGuard";
 import { useFeatureFlags } from "../../hooks/useFeatureFlags";
@@ -191,9 +190,6 @@ const EventsPage: React.FC = () => {
 
   const [selectedEvent, setSelectedEvent] = useState<EventData | null>(null);
 
-  // WebSocket
-  const { isConnected } = useWebSocketContext();
-
   // Cargar eventos al montar
   useEffect(() => {
     const loadEvents = async () => {
@@ -310,13 +306,6 @@ const EventsPage: React.FC = () => {
             <Calendar className="w-6 h-6 text-blue-600" />
             Eventos
           </h1>
-          <div className="fixed bottom-20 right-4 z-30">
-            <StatusChip
-              variant="indicator"
-              status={isConnected ? "connected" : "disconnected"}
-              label="Tiempo Real"
-            />
-          </div>
         </div>
 
         {/* SECCION 1: PRÓXIMOS Y EN VIVO */}
