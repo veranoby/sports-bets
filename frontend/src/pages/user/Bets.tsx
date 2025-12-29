@@ -1,7 +1,13 @@
 // frontend/src/pages/user/Bets.tsx - Refactored for modern UI and 2-column layout
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+} from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Activity,
@@ -24,7 +30,8 @@ import ProposalNotifications from "../../components/user/ProposalNotifications";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import { useWebSocketListener } from "../../hooks/useWebSocket";
 
-import type { Bet, EventData, Fight } from "../../types";
+import type { Bet, BetStatus, EventData, Fight } from "../../types";
+import type { UnifiedBet } from "../../types/unified";
 
 // Tipos para las propuestas P2P
 interface ProposalReceivedData {
@@ -124,17 +131,10 @@ export default function UserBets() {
   useEffect(() => {
     betsRef.current = bets.map((bet) => ({
       ...bet,
-      id: bet.id,
-      amount: bet.amount,
-      status: bet.status as any,
-      fightId: bet.fightId,
-      side: bet.side,
-      potentialWin: (bet as any).potentialWin || 0,
-      userId: bet.userId || "",
-      updatedAt: (bet as any).updatedAt || new Date().toISOString(),
-      result: (bet.result as "win" | "loss") || undefined,
-      choice: bet.choice || "",
-      createdAt: bet.createdAt || new Date().toISOString(),
+      potentialWin: bet.potentialWin ?? 0,
+      updatedAt: bet.updatedAt ?? new Date().toISOString(),
+      result: bet.result ?? undefined,
+      createdAt: bet.createdAt ?? new Date().toISOString(),
     }));
   }, [bets]);
 
@@ -146,7 +146,7 @@ export default function UserBets() {
     setBetsRef.current((prev) =>
       prev.map((bet) =>
         bet.id === data.proposalId
-          ? { ...bet, status: "accepted" as any }
+          ? { ...bet, status: "accepted" }
           : bet,
       ),
     );
@@ -187,7 +187,7 @@ export default function UserBets() {
           if (bet.status === "active") acc.activeBets++;
           if (bet.result === "win") {
             acc.wonBets++;
-            acc.totalWon += (bet as any).potentialWin || 0;
+            acc.totalWon += bet.potentialWin ?? 0;
           }
           if (bet.result === "loss") {
             acc.lostBets++;
@@ -230,18 +230,26 @@ export default function UserBets() {
     }
   };
 
-  if (loading) return <LoadingSpinner text="Cargando panel de apuestas..." />;
+  // Filter Active vs History (MUST be before conditional return)
+  const activeBetsList = useMemo(
+    () =>
+      bets.filter(
+        (bet) => bet.status === "active" || bet.status === "pending",
+      ),
+    [bets],
+  );
+  const historyBetsList = useMemo(
+    () =>
+      bets.filter(
+        (bet) =>
+          bet.status === "won" ||
+          bet.status === "lost" ||
+          bet.status === "cancelled",
+      ),
+    [bets],
+  );
 
-  // Filter Active vs History
-  const activeBetsList = bets.filter(
-    (bet) => bet.status === "active" || bet.status === "pending",
-  );
-  const historyBetsList = bets.filter(
-    (bet) =>
-      bet.status === "won" ||
-      bet.status === "lost" ||
-      bet.status === "cancelled",
-  );
+  if (loading) return <LoadingSpinner text="Cargando panel de apuestas..." />;
 
   return (
     <div className="page-background pb-24">
@@ -315,17 +323,7 @@ export default function UserBets() {
                 {activeBetsList.map((bet) => (
                   <BetCard
                     key={bet.id}
-                    bet={
-                      {
-                        ...bet,
-                        potentialWin: (bet as any).potentialWin || 0,
-                        userId: (bet as any).userId || "",
-                        updatedAt:
-                          (bet as any).updatedAt || new Date().toISOString(),
-                        status: bet.status as any,
-                        result: bet.result as any,
-                      } as any
-                    }
+                    bet={bet as Bet}
                     onCancel={handleCancelBet}
                     onAccept={handleAcceptBet}
                   />
@@ -421,17 +419,7 @@ export default function UserBets() {
               {historyBetsList.slice(0, 6).map((bet) => (
                 <BetCard
                   key={bet.id}
-                  bet={
-                    {
-                      ...bet,
-                      potentialWin: (bet as any).potentialWin || 0,
-                      userId: (bet as any).userId || "",
-                      updatedAt:
-                        (bet as any).updatedAt || new Date().toISOString(),
-                      status: bet.status as any,
-                      result: bet.result as any,
-                    } as any
-                  }
+                  bet={bet as Bet}
                   onCancel={handleCancelBet}
                   onAccept={handleAcceptBet}
                   mode="history"
