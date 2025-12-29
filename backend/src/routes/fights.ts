@@ -208,7 +208,7 @@ router.put(
       .withMessage("Notes must not exceed 1000 characters"),
     body("status")
       .optional()
-      .isIn(["upcoming", "betting", "live", "completed", "cancelled"])
+      .isIn(["draft", "scheduled", "ready", "betting_open", "in_progress", "completed", "cancelled"])
       .withMessage("Invalid status"),
   ],
   asyncHandler(async (req, res) => {
@@ -246,9 +246,9 @@ router.put(
       throw errors.forbidden("You are not assigned to this event");
     }
 
-    // Verificar si la pelea puede ser editada - Solo permitir cuando está upcoming
-    if (fight.status !== "upcoming") {
-      throw errors.badRequest("Fights can only be edited when in upcoming status");
+    // Verificar si la pelea puede ser editada - Solo permitir cuando está draft o scheduled
+    if (fight.status !== "draft" && fight.status !== "scheduled") {
+      throw errors.badRequest("Fights can only be edited when in draft or scheduled status");
     }
 
     // Actualizar campos permitidos
@@ -295,8 +295,8 @@ router.patch(
   authorize("admin", "operator"),
   [
     body("status")
-      .isIn(["upcoming", "betting", "live", "completed"])
-      .withMessage("Status must be upcoming, betting, live, or completed"),
+      .isIn(["draft", "scheduled", "ready", "betting_open", "in_progress", "completed", "cancelled"])
+      .withMessage("Status must be draft, scheduled, ready, betting_open, in_progress, completed, or cancelled"),
     body("result")
       .optional()
       .isIn(["red", "blue", "draw"])
@@ -362,11 +362,11 @@ router.patch(
 
       // Handle specific status logic
       switch (status) {
-        case "betting":
+        case "betting_open":
           fight.bettingStartTime = new Date();
           break;
 
-        case "live":
+        case "in_progress":
           fight.bettingEndTime = new Date();
           fight.startTime = new Date();
 
@@ -433,8 +433,8 @@ router.patch(
       // Broadcast via SSE
       const sseService = req.app.get("sseService");
       if (sseService) {
-        const eventType = status === "betting" ? "BETTING_WINDOW_OPENED" :
-                         status === "live" ? "BETTING_WINDOW_CLOSED" :
+        const eventType = status === "betting_open" ? "BETTING_WINDOW_OPENED" :
+                         status === "in_progress" ? "BETTING_WINDOW_CLOSED" :
                          status === "completed" ? "FIGHT_COMPLETED" : "FIGHT_STATUS_UPDATE";
 
         sseService.broadcastToSystem(eventType, {
@@ -491,12 +491,12 @@ router.post(
     }
 
     // Verificar que la pelea puede abrir apuestas
-    if (fight.status !== "upcoming") {
-      throw errors.badRequest("Betting can only be opened for upcoming fights");
+    if (fight.status !== "ready" && fight.status !== "scheduled") {
+      throw errors.badRequest("Betting can only be opened for ready or scheduled fights");
     }
 
     // Abrir apuestas con timestamp
-    fight.status = "betting";
+    fight.status = "betting_open";
     fight.bettingStartTime = new Date();
     await fight.save();
 
@@ -546,12 +546,12 @@ router.post(
     }
 
     // Verificar que las apuestas están abiertas
-    if (fight.status !== "betting") {
+    if (fight.status !== "betting_open") {
       throw errors.badRequest("Betting is not currently open for this fight");
     }
 
     // Cerrar apuestas con timestamps
-    fight.status = "live";
+    fight.status = "in_progress";
     fight.bettingEndTime = new Date();
     fight.startTime = new Date();
     await fight.save();
@@ -639,8 +639,8 @@ router.post(
       }
 
       // Verificar que la pelea está en vivo
-      if (fight.status !== "live") {
-        throw errors.badRequest("Can only record results for live fights");
+      if (fight.status !== "in_progress") {
+        throw errors.badRequest("Can only record results for fights in progress");
       }
 
       // Completar pelea
@@ -774,12 +774,12 @@ router.post(
     }
 
     // Verify fight status
-    if (fight.status !== "upcoming") {
+    if (fight.status !== "ready" && fight.status !== "scheduled") {
       throw errors.badRequest(`Cannot open betting for fight with status: ${fight.status}`);
     }
 
     // Open betting window
-    fight.status = "betting";
+    fight.status = "betting_open";
     await fight.save();
 
     // Notify via SSE
@@ -820,13 +820,13 @@ router.post(
     }
 
     // Verify fight status
-    if (fight.status !== "betting") {
+    if (fight.status !== "betting_open") {
       throw errors.badRequest(`Cannot close betting for fight with status: ${fight.status}`);
     }
 
     await transaction(async (t) => {
       // Close betting window
-      fight.status = "live";
+      fight.status = "in_progress";
       await fight.save({ transaction: t });
 
       // Auto-cancel any pending unmatched bets
@@ -900,7 +900,7 @@ router.get(
     const currentFight = await Fight.findOne({
       where: {
         eventId,
-        status: "betting"
+        status: "betting_open"
       },
       include: [
         { model: Event, as: "event" },
@@ -971,7 +971,7 @@ router.get(
     }
 
     // Verify betting is open
-    if (fight.status !== "betting") {
+    if (fight.status !== "betting_open") {
       throw errors.forbidden("Betting is not open for this fight");
     }
 
@@ -1046,9 +1046,9 @@ router.delete(
         throw errors.badRequest("Cannot delete fight with active/pending bets");
       }
 
-      // Cannot delete if fight is live
-      if (fight.status === "live") {
-        throw errors.badRequest("Cannot delete a live fight");
+      // Cannot delete if fight is in progress
+      if (fight.status === "in_progress") {
+        throw errors.badRequest("Cannot delete a fight in progress");
       }
 
       // Delete all associated bets first

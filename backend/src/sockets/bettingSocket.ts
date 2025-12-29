@@ -137,7 +137,7 @@ export const setupBettingSocket = (io: Server) => {
 
         // Check if betting window is open for this fight
         const fight = await Fight.findByPk(data.fightId);
-        if (!fight || fight.status !== 'betting') {
+        if (!fight || fight.status !== 'betting_open') {
           return socket.emit('bet_error', { message: 'Betting window is closed for this fight' });
         }
 
@@ -225,7 +225,7 @@ export const setupBettingSocket = (io: Server) => {
 
         // Check if betting window is open for this fight
         const fight = await Fight.findByPk(pendingBet.fightId);
-        if (!fight || fight.status !== 'betting') {
+        if (!fight || fight.status !== 'betting_open') {
           socket.emit('bet_error', { message: 'Betting window is closed for this fight' });
           return;
         }

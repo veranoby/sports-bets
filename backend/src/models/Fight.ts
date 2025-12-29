@@ -32,7 +32,7 @@ export class Fight extends Model<
   declare totalBets: number;
   declare totalAmount: number;
   declare status: CreationOptional<
-    "upcoming" | "betting" | "live" | "completed" | "cancelled"
+    "draft" | "scheduled" | "ready" | "betting_open" | "in_progress" | "completed" | "cancelled"
   >;
   declare result: CreationOptional<"red" | "blue" | "draw" | "cancelled">;
   declare startTime: CreationOptional<Date>;
@@ -46,11 +46,15 @@ export class Fight extends Model<
 
   // Métodos de instancia
   isLive(): boolean {
-    return this.status === "live";
+    return this.status === "in_progress";
   }
 
   isBettingOpen(): boolean {
-    return this.status === "betting";
+    return this.status === "betting_open";
+  }
+
+  isBettingLocked(): boolean {
+    return this.status === "in_progress";
   }
 
   isCompleted(): boolean {
@@ -60,7 +64,7 @@ export class Fight extends Model<
   canAcceptBets(): boolean {
     const now = new Date();
     return (
-      this.status === "betting" &&
+      this.status === "betting_open" &&
       (!this.bettingStartTime || now >= this.bettingStartTime) &&
       (!this.bettingEndTime || now <= this.bettingEndTime)
     );
@@ -77,15 +81,17 @@ export class Fight extends Model<
     return this.toJSON();
   }
 
-  canTransitionTo(newStatus: "upcoming" | "betting" | "live" | "completed" | "cancelled"): boolean {
+  canTransitionTo(newStatus: "draft" | "scheduled" | "ready" | "betting_open" | "in_progress" | "completed" | "cancelled"): boolean {
     const validTransitions = {
-      "upcoming": ["betting", "cancelled"],
-      "betting": ["live", "cancelled"],
-      "live": ["completed", "cancelled"],
+      "draft": ["scheduled", "cancelled"],
+      "scheduled": ["ready", "cancelled"],
+      "ready": ["betting_open", "cancelled"],
+      "betting_open": ["in_progress", "cancelled"],
+      "in_progress": ["completed", "cancelled"],
       "completed": [] as string[],
       "cancelled": [] as string[]
     };
-    
+
     return validTransitions[this.status]?.includes(newStatus) ?? false;
   }
 }
@@ -183,14 +189,16 @@ Fight.init(
     },
     status: {
       type: DataTypes.ENUM(
-        "upcoming",
-        "betting",
-        "live",
+        "draft",
+        "scheduled",
+        "ready",
+        "betting_open",
+        "in_progress",
         "completed",
         "cancelled"
       ),
       allowNull: false,
-      defaultValue: "upcoming",
+      defaultValue: "draft",
     },
     result: {
       type: DataTypes.ENUM("red", "blue", "draw", "cancelled"),
