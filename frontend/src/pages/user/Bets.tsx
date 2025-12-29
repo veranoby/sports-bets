@@ -68,7 +68,8 @@ export default function UserBets() {
     const unsubscribe = subscribeToEvents({
       BET_MATCHED: (data) => {
         const betData = data.data as Bet;
-        if (betData?.userId === betsRef.current[0]?.userId) { // Check if it's current user's bet
+        if (betData?.userId === betsRef.current[0]?.userId) {
+          // Check if it's current user's bet
           toast.success(`¡Tu apuesta de $${betData.amount} ha sido igualada!`);
           fetchMyBets(); // Refresh my bets
         }
@@ -101,7 +102,10 @@ export default function UserBets() {
   useEffect(() => {
     const loadAllEvents = async () => {
       try {
-        const response = await eventsAPI.getAll({ limit: 100, includeFights: true });
+        const response = await eventsAPI.getAll({
+          limit: 100,
+          includeFights: true,
+        });
         if (response.success && response.data?.events) {
           setAllEvents(response.data.events);
         }
@@ -123,7 +127,8 @@ export default function UserBets() {
       const stats = bets.reduce(
         (acc, bet) => {
           acc.totalBets++;
-          if (bet.status === "active" || bet.status === "pending") acc.activeBets++; // Treat pending as active for stats
+          if (bet.status === "active" || bet.status === "pending")
+            acc.activeBets++; // Treat pending as active for stats
           if (bet.result === "win") {
             acc.wonBets++;
             acc.totalWon += bet.payout ?? 0; // Use payout for won bets
@@ -196,13 +201,26 @@ export default function UserBets() {
 
   // Filter pending bets that are offers (available for matching)
   const availableBetsForMatching = useMemo(() => {
-    const allBetsFromEvents: (Bet & { eventName: string; fightNumber: number })[] = [];
+    const allBetsFromEvents: (Bet & {
+      eventName: string;
+      fightNumber: number;
+    })[] = [];
 
-    allEvents.forEach(event => {
-      event.fights?.forEach(fight => {
-        fight.bets?.forEach(bet => { // Assuming 'bets' property exists on Fight
-          if (bet.status === "pending" && bet.isOffer && bet.userId !== betsRef.current[0]?.userId) {
-            allBetsFromEvents.push({ ...bet, eventName: event.name, fightNumber: fight.number, eventId: event.id });
+    allEvents.forEach((event) => {
+      event.fights?.forEach((fight) => {
+        fight.bets?.forEach((bet) => {
+          // Assuming 'bets' property exists on Fight
+          if (
+            bet.status === "pending" &&
+            bet.isOffer &&
+            bet.userId !== betsRef.current[0]?.userId
+          ) {
+            allBetsFromEvents.push({
+              ...bet,
+              eventName: event.name,
+              fightNumber: fight.number,
+              eventId: event.id,
+            });
           }
         });
       });

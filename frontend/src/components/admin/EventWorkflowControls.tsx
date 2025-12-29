@@ -1,12 +1,6 @@
 // frontend/src/components/admin/EventWorkflowControls.tsx
 import React from "react";
-import {
-  Play,
-  Square,
-  Pause,
-  RotateCcw,
-  Shield,
-} from "lucide-react";
+import { Play, Square, Pause, RotateCcw, Shield } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import type { EventData } from "../../types";
 import { eventsAPI } from "../../services/api";
@@ -39,7 +33,9 @@ const EventWorkflowControls: React.FC<EventWorkflowControlsProps> = ({
     );
   }
 
-  const handleStreamAction = async (action: "start" | "stop" | "pause" | "resume") => {
+  const handleStreamAction = async (
+    action: "start" | "stop" | "pause" | "resume",
+  ) => {
     try {
       switch (action) {
         case "start":

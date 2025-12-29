@@ -61,27 +61,43 @@ const FightPreviewModal = memo(
 
     const getFightStatusText = (status: Fight["status"]) => {
       switch (status) {
-        case "draft": return "Borrador";
-        case "scheduled": return "Programada";
-        case "ready": return "Próxima";
-        case "betting_open": return "Apuestas Abiertas";
-        case "in_progress": return "En Progreso";
-        case "completed": return "Finalizada";
-        case "cancelled": return "Cancelada";
-        default: return "Desconocido";
+        case "draft":
+          return "Borrador";
+        case "scheduled":
+          return "Programada";
+        case "ready":
+          return "Próxima";
+        case "betting_open":
+          return "Apuestas Abiertas";
+        case "in_progress":
+          return "En Progreso";
+        case "completed":
+          return "Finalizada";
+        case "cancelled":
+          return "Cancelada";
+        default:
+          return "Desconocido";
       }
     };
 
     const getFightStatusColor = (status: Fight["status"]) => {
       switch (status) {
-        case "draft": return "text-gray-600";
-        case "scheduled": return "text-blue-600";
-        case "ready": return "text-yellow-600";
-        case "betting_open": return "text-green-600";
-        case "in_progress": return "text-red-600";
-        case "completed": return "text-purple-600";
-        case "cancelled": return "text-gray-600";
-        default: return "text-gray-500";
+        case "draft":
+          return "text-gray-600";
+        case "scheduled":
+          return "text-blue-600";
+        case "ready":
+          return "text-yellow-600";
+        case "betting_open":
+          return "text-green-600";
+        case "in_progress":
+          return "text-red-600";
+        case "completed":
+          return "text-purple-600";
+        case "cancelled":
+          return "text-gray-600";
+        default:
+          return "text-gray-500";
       }
     };
 
@@ -184,7 +200,9 @@ const FightPreviewModal = memo(
                             {fight.blueCorner}
                           </span>
                         </p>
-                        <p className={`text-sm ${getFightStatusColor(fight.status)}`}>
+                        <p
+                          className={`text-sm ${getFightStatusColor(fight.status)}`}
+                        >
                           {getFightStatusText(fight.status)}
                         </p>
                       </div>
@@ -710,18 +728,12 @@ const LiveEvent = () => {
   // Filter bets for the currently active fight
   const allFights = currentEvent?.fights || [];
   const activeFight =
-    allFights.find((f) => f.status === "betting_open" || f.status === "in_progress") ||
-    allFights.find((f) => f.status === "ready"); // Fallback to ready if no betting_open or in_progress
-
-  // ✅ Data para las tabs - only show bets for the current fight
-  const availableBetsForFight = (bets?.filter((bet) => bet.fightId === activeFight?.id && bet.status === "pending") ||
-    []) as Bet[];
-  const myBetsForFight = (bets?.filter((bet) => bet.fightId === activeFight?.id && bet.userId === user?.id) || []) as Bet[];
-
+    allFights.find(
+      (f) => f.status === "betting_open" || f.status === "in_progress",
+    ) || allFights.find((f) => f.status === "ready"); // Fallback to ready if no betting_open or in_progress
 
   console.log("🎯 LiveEvent render: currentEvent =", currentEvent);
   console.log("🥊 LiveEvent render: allFights =", allFights);
-
 
   // ✅ Fights separation for modal
   const completedFights = allFights.filter((f) => f.status === "completed");
@@ -729,7 +741,7 @@ const LiveEvent = () => {
     (f) =>
       f.status === "scheduled" ||
       f.status === "betting_open" ||
-      f.status === "ready"
+      f.status === "ready",
   );
   console.log("📊 LiveEvent: completedFights =", completedFights.length);
   console.log("📊 LiveEvent: scheduledFights =", scheduledFights.length);
@@ -960,10 +972,6 @@ const LiveEvent = () => {
             {activeFight && (
               <BettingPanelComponent
                 fightId={activeFight.id}
-                onBetPlaced={() => {
-                  fetchMyBets();
-                  fetchAvailableBets(eventId);
-                }}
                 isBettingOpen={activeFight.status === "betting_open"}
               />
             )}
