@@ -454,10 +454,7 @@ const OptimizedStreamingMonitor: React.FC = () => {
           {/* Stream Player - 70% width */}
           <div className="lg:col-span-7 bg-black rounded-lg shadow-lg overflow-hidden">
             {streamUrl ? (
-              <VideoPlayer
-                src={streamUrl}
-                streamId={selectedEventId || ""}
-              />
+              <VideoPlayer src={streamUrl} streamId={selectedEventId || ""} />
             ) : (
               <div className="flex items-center justify-center h-full text-gray-400 p-12 text-center">
                 <div>

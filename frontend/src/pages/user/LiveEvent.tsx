@@ -345,10 +345,7 @@ const StreamingContainer = memo(
     <div className="relative">
       {streamUrl && streamStatus === "connected" ? (
         <>
-          <VideoPlayer
-            src={streamUrl}
-            streamId={eventId}
-          />
+          <VideoPlayer src={streamUrl} streamId={eventId} />
           {currentViewers !== undefined && (
             <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded z-10">
               <Users className="w-3 h-3 inline mr-1" />
