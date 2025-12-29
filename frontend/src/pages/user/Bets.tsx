@@ -13,33 +13,32 @@ import {
   History,
   Trophy,
   AlertCircle,
+  Eye,
 } from "lucide-react";
 
 import { useBets, useWallet } from "../../hooks/useApi";
 import { eventsAPI } from "../../services/api"; // Added for live events
 import BetCard from "../../components/user/BetCard";
-import BettingPanel from "../../components/user/BettingPanel";
 import CreateBetModal from "../../components/user/CreateBetModal";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
+import { SSEEventType, useSSE } from "../../hooks/useSSE"; // Import useSSE
 
 import type { Bet, EventData, Fight } from "../../types";
+import { toast } from "sonner";
 
 export default function UserBets() {
   const navigate = useNavigate();
 
   // Estados principales
   const [showCreateModal, setShowCreateModal] = useState(false);
-
-  // Estados para Live Event / Betting Panel
-  const [liveEvent, setLiveEvent] = useState<EventData | null>(null);
-  const [currentFight, setCurrentFight] = useState<Fight | null>(null);
-  const [loadingLive, setLoadingLive] = useState(false);
+  const [selectedFightForBet, setSelectedFightForBet] = useState<Fight | null>(
+    null,
+  );
 
   // API Hooks
   const { bets, loading, fetchMyBets, cancelBet, acceptBet } = useBets();
-
-  // Use ref for bets
-  const betsRef = useRef<Bet[]>([]);
+  const { fetchEvents } = useEvents(); // To fetch event details for pending bets
+  const [allEvents, setAllEvents] = useState<EventData[]>([]);
 
   useWallet();
 
@@ -55,47 +54,39 @@ export default function UserBets() {
     netProfit: 0,
   });
 
-  // Fetch Live Event Logic
+  // SSE for bet updates (e.g., bet_matched)
+  const apiBaseUrl =
+    import.meta.env.VITE_API_URL?.replace("/api", "") ||
+    "http://localhost:3001";
+  const { status: sseStatus, subscribeToEvents } = useSSE(
+    `${apiBaseUrl}/api/sse/public/bets`,
+  ); // Public bets channel for user updates
+
   useEffect(() => {
-    const fetchLiveContext = async () => {
-      setLoadingLive(true);
-      try {
-        // Fetch active events
-        const response = await eventsAPI.getAll({ category: "live", limit: 1 });
-        if (response.success && response.data) {
-          const events =
-            (response.data as { events?: EventData[] }).events || [];
-          if (events.length > 0) {
-            const event = events[0];
-            setLiveEvent(event);
+    if (sseStatus !== "connected") return;
 
-            // Find active fight within the event
-            const activeFight = event.fights?.find(
-              (f) => f.status === "betting" || f.status === "live",
-            );
-
-            if (activeFight) {
-              setCurrentFight(activeFight);
-            } else if (event.fights && event.fights.length > 0) {
-              // Fallback to first upcoming fight if no active fight
-              const nextFight =
-                event.fights.find((f) => f.status === "upcoming") ||
-                event.fights[0];
-              setCurrentFight(nextFight);
-            }
-          }
+    const unsubscribe = subscribeToEvents({
+      BET_MATCHED: (data) => {
+        const betData = data.data as Bet;
+        if (betData?.userId === betsRef.current[0]?.userId) { // Check if it's current user's bet
+          toast.success(`¡Tu apuesta de $${betData.amount} ha sido igualada!`);
+          fetchMyBets(); // Refresh my bets
         }
-      } catch (error) {
-        console.error("Error fetching live event context:", error);
-      } finally {
-        setLoadingLive(false);
-      }
+      },
+      NEW_BET: () => {
+        // A new bet was created, might be relevant for available bets
+        // Refetch all events to update available bets
+        fetchMyBets();
+      },
+    });
+
+    return () => {
+      unsubscribe();
     };
+  }, [sseStatus, subscribeToEvents, fetchMyBets]);
 
-    fetchLiveContext();
-  }, []);
-
-  // Update betsRef when bets change
+  // Use ref for bets for SSE handler to access latest state
+  const betsRef = useRef<Bet[]>([]);
   useEffect(() => {
     betsRef.current = bets.map((bet) => ({
       ...bet,
@@ -105,6 +96,21 @@ export default function UserBets() {
       createdAt: bet.createdAt ?? new Date().toISOString(),
     }));
   }, [bets]);
+
+  // Fetch all events for contextual info
+  useEffect(() => {
+    const loadAllEvents = async () => {
+      try {
+        const response = await eventsAPI.getAll({ limit: 100, includeFights: true });
+        if (response.success && response.data?.events) {
+          setAllEvents(response.data.events);
+        }
+      } catch (error) {
+        console.error("Error loading all events:", error);
+      }
+    };
+    loadAllEvents();
+  }, []);
 
   // Cargar mis apuestas
   useEffect(() => {
@@ -117,10 +123,10 @@ export default function UserBets() {
       const stats = bets.reduce(
         (acc, bet) => {
           acc.totalBets++;
-          if (bet.status === "active") acc.activeBets++;
+          if (bet.status === "active" || bet.status === "pending") acc.activeBets++; // Treat pending as active for stats
           if (bet.result === "win") {
             acc.wonBets++;
-            acc.totalWon += bet.potentialWin ?? 0;
+            acc.totalWon += bet.payout ?? 0; // Use payout for won bets
           }
           if (bet.result === "loss") {
             acc.lostBets++;
@@ -150,6 +156,7 @@ export default function UserBets() {
   const handleCancelBet = async (betId: string) => {
     try {
       await cancelBet(betId);
+      fetchMyBets(); // Refresh after cancel
     } catch (error) {
       console.error("Error al cancelar apuesta:", error);
     }
@@ -158,17 +165,24 @@ export default function UserBets() {
   const handleAcceptBet = async (betId: string) => {
     try {
       await acceptBet(betId);
+      fetchMyBets(); // Refresh after accept
     } catch (error) {
       console.error("Error al aceptar apuesta:", error);
     }
   };
 
   // Filter Active vs History (MUST be before conditional return)
-  const activeBetsList = useMemo(
+  const myActiveBets = useMemo(
     () =>
-      bets.filter((bet) => bet.status === "active" || bet.status === "pending"),
+      bets.filter(
+        (bet) =>
+          bet.status === "active" ||
+          bet.status === "pending" ||
+          bet.status === "matched", // Matched bets are still active for user
+      ),
     [bets],
   );
+
   const historyBetsList = useMemo(
     () =>
       bets.filter(
@@ -179,6 +193,22 @@ export default function UserBets() {
       ),
     [bets],
   );
+
+  // Filter pending bets that are offers (available for matching)
+  const availableBetsForMatching = useMemo(() => {
+    const allBetsFromEvents: (Bet & { eventName: string; fightNumber: number })[] = [];
+
+    allEvents.forEach(event => {
+      event.fights?.forEach(fight => {
+        fight.bets?.forEach(bet => { // Assuming 'bets' property exists on Fight
+          if (bet.status === "pending" && bet.isOffer && bet.userId !== betsRef.current[0]?.userId) {
+            allBetsFromEvents.push({ ...bet, eventName: event.name, fightNumber: fight.number, eventId: event.id });
+          }
+        });
+      });
+    });
+    return allBetsFromEvents;
+  }, [allEvents, betsRef.current]);
 
   if (loading) return <LoadingSpinner text="Cargando panel de apuestas..." />;
 
@@ -243,17 +273,17 @@ export default function UserBets() {
           <div className="space-y-4">
             <h2 className="text-lg font-bold text-theme-primary flex items-center gap-2">
               <Zap className="w-5 h-5 text-yellow-400" />
-              Apuestas Activas
+              Mis Apuestas Activas
             </h2>
 
-            {activeBetsList.length > 0 ? (
+            {myActiveBets.length > 0 ? (
               <div className="space-y-3">
-                {activeBetsList.map((bet) => (
+                {myActiveBets.map((bet) => (
                   <BetCard
                     key={bet.id}
                     bet={bet as Bet}
                     onCancel={handleCancelBet}
-                    onAccept={handleAcceptBet}
+                    onAccept={() => navigate(`/live-event/${bet.eventId}`)} // Navigate to event to manage/accept
                   />
                 ))}
               </div>
@@ -263,73 +293,87 @@ export default function UserBets() {
                 <p className="text-theme-light">
                   No tienes apuestas activas en este momento.
                 </p>
+                <button
+                  onClick={() => navigate("/events")}
+                  className="mt-4 text-blue-400 text-sm hover:underline"
+                >
+                  Ver eventos para apostar
+                </button>
               </div>
             )}
           </div>
 
-          {/* COLUMNA DERECHA: APUESTAS DISPONIBLES (PANEL) */}
+          {/* COLUMNA DERECHA: APUESTAS DISPONIBLES */}
           <div className="space-y-4">
             <h2 className="text-lg font-bold text-theme-primary flex items-center gap-2">
               <Trophy className="w-5 h-5 text-blue-400" />
-              Panel de Apuestas
+              Apuestas Disponibles para Match
             </h2>
 
-            {loadingLive ? (
-              <div className="card-background p-8 flex justify-center">
-                <LoadingSpinner text="Buscando eventos en vivo..." />
-              </div>
-            ) : liveEvent && currentFight ? (
-              <div className="card-background border border-blue-500/30 overflow-hidden relative">
-                {/* Header del Evento en el Panel */}
-                <div className="bg-gradient-to-r from-blue-900/40 to-purple-900/40 p-4 border-b border-blue-500/20">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="bg-red-500 text-white text-[10px] uppercase font-bold px-2 py-0.5 rounded-full animate-pulse">
-                          EN VIVO
-                        </span>
-                        <h3 className="font-bold text-white text-sm">
-                          {liveEvent.name}
-                        </h3>
-                      </div>
-                      <p className="text-blue-200 text-xs flex items-center gap-1">
-                        Pelea #{currentFight.number} • {currentFight.redCorner}{" "}
-                        vs {currentFight.blueCorner}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => navigate(`/live-event/${liveEvent.id}`)}
-                      className="text-xs bg-blue-600/20 hover:bg-blue-600/40 text-blue-300 border border-blue-500/30 px-2 py-1 rounded transition-colors"
-                    >
-                      Ver Transmisión
-                    </button>
-                  </div>
-                </div>
-
-                {/* Betting Panel Integrado */}
-                <div className="p-0">
-                  <BettingPanel
-                    fightId={currentFight.id}
-                    mode="advanced"
-                    onBetPlaced={() => fetchMyBets()}
-                  />
-                </div>
-              </div>
-            ) : (
+            {availableBetsForMatching.length === 0 ? (
               <div className="card-background p-8 flex flex-col items-center justify-center text-center">
                 <AlertCircle className="w-10 h-10 text-theme-light/50 mb-3" />
                 <h3 className="text-theme-primary font-medium mb-1">
-                  Sin Eventos en Vivo
+                  Sin Apuestas Disponibles
                 </h3>
                 <p className="text-theme-light text-sm">
-                  No hay peleas disponibles para apostar en este momento.
+                  No hay apuestas de otros usuarios que puedas igualar en este
+                  momento.
                 </p>
                 <button
                   onClick={() => navigate("/events")}
                   className="mt-4 text-blue-400 text-sm hover:underline"
                 >
-                  Ver próximos eventos
+                  Crea tus propias apuestas
                 </button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {availableBetsForMatching.map((bet) => (
+                  <div
+                    key={bet.id}
+                    className="card-background p-4 rounded-lg border border-[#596c95]/30"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="font-semibold text-white">
+                        {bet.eventName} - Pelea #{bet.fightNumber}
+                      </p>
+                      {/* <StatusChip status={bet.status} size="sm" /> */}
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <div>
+                        <p className="text-theme-light">
+                          Apostado:{" "}
+                          <span className="font-medium text-white">
+                            ${bet.amount}
+                          </span>
+                        </p>
+                        <p className="text-theme-light">
+                          Lado:{" "}
+                          <span className="font-medium text-white">
+                            {bet.side === "red" ? "Rojo" : "Azul"}
+                          </span>
+                        </p>
+                      </div>
+                      <div className="flex flex-col items-end gap-2">
+                        <button
+                          onClick={() => handleAcceptBet(bet.id)}
+                          className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 transition-colors flex items-center gap-1"
+                        >
+                          <Plus className="w-4 h-4" />
+                          Igualar
+                        </button>
+                        <button
+                          onClick={() => navigate(`/live-event/${bet.eventId}`)}
+                          className="text-blue-400 text-xs hover:underline flex items-center gap-1"
+                        >
+                          <Eye className="w-3 h-3" />
+                          Ver Evento
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -349,7 +393,6 @@ export default function UserBets() {
                   key={bet.id}
                   bet={bet as Bet}
                   onCancel={handleCancelBet}
-                  onAccept={handleAcceptBet}
                   mode="history"
                 />
               ))}
@@ -371,7 +414,7 @@ export default function UserBets() {
       </div>
 
       {/* FAB para crear apuesta (solo si hay pelea activa) */}
-      {currentFight && (
+      {selectedFightForBet && (
         <button
           onClick={() => setShowCreateModal(true)}
           className="fixed bottom-6 right-6 bg-[#cd6263] text-white p-4 rounded-full shadow-lg hover:bg-[#b55456] transition-colors z-40"
@@ -381,9 +424,9 @@ export default function UserBets() {
       )}
 
       {/* Modal para crear apuesta */}
-      {showCreateModal && currentFight && (
+      {showCreateModal && selectedFightForBet && (
         <CreateBetModal
-          fightId={currentFight.id}
+          fightId={selectedFightForBet.id}
           onClose={() => {
             fetchMyBets();
             setShowCreateModal(false);

@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useBets } from "../../hooks/useApi";
 import Modal from "../shared/Modal";
 import { DollarSign } from "lucide-react";
+
+const FIXED_BET_AMOUNTS = [5, 10, 20, 50, 100, 200, 500];
 
 const CreateBetModal = ({
   fightId,
@@ -10,7 +12,7 @@ const CreateBetModal = ({
   fightId: string;
   onClose: () => void;
 }) => {
-  const [amount, setAmount] = useState("");
+  const [amount, setAmount] = useState<number>(FIXED_BET_AMOUNTS[0]); // Default to smallest amount
   const [side, setSide] = useState<"red" | "blue">("red");
   const { createBet } = useBets();
 
@@ -35,14 +37,18 @@ const CreateBetModal = ({
             </label>
             <div className="relative">
               <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="number"
+              <select
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                onChange={(e) => setAmount(Number(e.target.value))}
                 className="w-full bg-[#2a325c] text-white p-3 pl-10 rounded-lg border border-[#596c95] focus:outline-none focus:ring-2 focus:ring-[#596c95] focus:border-transparent"
                 required
-                placeholder="Ingresa el monto de tu apuesta"
-              />
+              >
+                {FIXED_BET_AMOUNTS.map((amt) => (
+                  <option key={amt} value={amt}>
+                    ${amt}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 

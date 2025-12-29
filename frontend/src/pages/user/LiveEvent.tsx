@@ -20,6 +20,7 @@ import {
   Timer,
 } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
+import { toast } from "sonner"; // For toast notifications
 
 // ✅ FIX PRINCIPAL: useEvents en lugar de useEvent
 import { useEvents, useBets } from "../../hooks/useApi";
@@ -31,69 +32,9 @@ import ErrorMessage from "../../components/shared/ErrorMessage";
 import EmptyState from "../../components/shared/EmptyState";
 import SubscriptionGuard from "../../components/shared/SubscriptionGuard";
 import HLSPlayer from "../../components/streaming/HLSPlayer";
-import useSSE from "../../hooks/useSSE";
-
-// Tipos TypeScript
-interface Fight {
-  id: string;
-  redCorner: string;
-  blueCorner: string;
-  weight: number;
-  status: "scheduled" | "betting" | "live" | "completed";
-  number: number;
-  eventId: string;
-  redFighter?: string;
-  blueFighter?: string;
-}
-
-interface Bet {
-  id: string;
-  eventId: string;
-  userId: string;
-  amount: number;
-  odds: number;
-  side: "red" | "blue";
-  status: "pending" | "won" | "lost" | "cancelled" | "active";
-  payout?: number;
-  placedAt: string;
-  settledAt?: string;
-  fighterNames?: {
-    red: string;
-    blue: string;
-  };
-  result?: string;
-  fightId: string;
-  createdAt?: string;
-  createdBy?: string;
-  choice?: string;
-}
-
-interface EventData {
-  id: string;
-  name: string;
-  description?: string;
-  status: "scheduled" | "in-progress" | "completed" | "cancelled";
-  scheduledDate: string;
-  fights: Fight[]; // Ensure fights are part of the event data
-  venue?: {
-    id: string;
-    name: string;
-    location: string;
-    profileInfo?: {
-      venueName?: string;
-      venueLocation?: string;
-      venueDescription?: string;
-      venueEmail?: string;
-      venueWebsite?: string;
-      images?: string[];
-    };
-  };
-  streamUrl?: string;
-  streamStatus?: string;
-  currentViewers?: number;
-  totalFights: number;
-  completedFights: number;
-}
+import useSSE, { SSEEventType } from "../../hooks/useSSE";
+import { Fight, Bet, EventData } from "../../types"; // Import global types
+import BettingPanelComponent from "../../components/user/BettingPanel"; // Import global BettingPanel
 
 // Modal for fight preview
 const FightPreviewModal = memo(
@@ -117,6 +58,32 @@ const FightPreviewModal = memo(
       completedFightsCount: completedFights.length,
       scheduledFightsCount: scheduledFights.length,
     });
+
+    const getFightStatusText = (status: Fight["status"]) => {
+      switch (status) {
+        case "draft": return "Borrador";
+        case "scheduled": return "Programada";
+        case "ready": return "Próxima";
+        case "betting_open": return "Apuestas Abiertas";
+        case "in_progress": return "En Progreso";
+        case "completed": return "Finalizada";
+        case "cancelled": return "Cancelada";
+        default: return "Desconocido";
+      }
+    };
+
+    const getFightStatusColor = (status: Fight["status"]) => {
+      switch (status) {
+        case "draft": return "text-gray-600";
+        case "scheduled": return "text-blue-600";
+        case "ready": return "text-yellow-600";
+        case "betting_open": return "text-green-600";
+        case "in_progress": return "text-red-600";
+        case "completed": return "text-purple-600";
+        case "cancelled": return "text-gray-600";
+        default: return "text-gray-500";
+      }
+    };
 
     return (
       <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
@@ -184,7 +151,7 @@ const FightPreviewModal = memo(
                           {fight.blueCorner}
                         </span>
                         <span className="text-green-600 text-sm">
-                          Completada
+                          {getFightStatusText(fight.status)}
                         </span>
                       </div>
                       <button
@@ -217,10 +184,8 @@ const FightPreviewModal = memo(
                             {fight.blueCorner}
                           </span>
                         </p>
-                        <p className="text-blue-600 text-sm">
-                          {fight.status === "betting"
-                            ? "Apuestas Abiertas"
-                            : "Programada"}
+                        <p className={`text-sm ${getFightStatusColor(fight.status)}`}>
+                          {getFightStatusText(fight.status)}
                         </p>
                       </div>
                       {fight.weight && (
@@ -405,138 +370,6 @@ const StreamingContainer = memo(
   ),
 );
 
-// Enhanced betting panel with requested structure
-const BettingPanel = memo(
-  ({
-    availableBets,
-    myBets,
-    currentFight,
-    onAcceptBet,
-    onCreateBet,
-    isVenueRole,
-    isBettingOpen = true,
-  }: {
-    availableBets: Bet[];
-    myBets: Bet[];
-    currentFight?: Fight;
-    onAcceptBet: (betId: string) => void;
-    onCreateBet: () => void;
-    isVenueRole: boolean;
-    isBettingOpen?: boolean;
-  }) => {
-    return (
-      <div className="space-y-4">
-        {/* Two Column Layout for Betting */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Left Column: My Bets */}
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <h4 className="font-medium text-theme-primary">
-                Mis Apuestas En pelea Actual
-              </h4>
-              <button
-                onClick={onCreateBet}
-                disabled={isVenueRole || !isBettingOpen}
-                className={`px-3 py-1 text-xs rounded ${
-                  isVenueRole || !isBettingOpen
-                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "bg-blue-500 text-white hover:bg-blue-600"
-                }`}
-              >
-                Crear Nueva
-              </button>
-            </div>
-
-            {myBets.length === 0 ? (
-              <EmptyState
-                title="Sin apuestas"
-                description="Aún no has realizado apuestas en este evento"
-                className="text-xs"
-              />
-            ) : (
-              <div className="space-y-2 max-h-48 overflow-y-auto">
-                {myBets.map((bet) => (
-                  <div
-                    key={bet.id}
-                    className="card-background p-3 rounded border border-[#596c95]/20 text-xs"
-                  >
-                    <div className="flex justify-between">
-                      <span className="font-medium">{bet.choice}</span>
-                      <span className="text-green-500">${bet.amount}</span>
-                    </div>
-                    <div className="flex justify-between mt-1">
-                      <span>Lado: {bet.side}</span>
-                      <span
-                        className={`px-1 rounded ${
-                          bet.status === "active"
-                            ? "text-blue-500"
-                            : bet.status === "won"
-                              ? "text-green-500"
-                              : "text-red-500"
-                        }`}
-                      >
-                        {bet.status === "active"
-                          ? "Activa"
-                          : bet.status === "won"
-                            ? "Ganada"
-                            : "Perdida"}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Right Column: Available Bets */}
-          <div>
-            <h4 className="font-medium text-theme-primary mb-2">
-              Apuestas Disponibles En Pelea Actual
-            </h4>
-
-            {availableBets.length === 0 ? (
-              <EmptyState
-                title="No hay apuestas"
-                description="No hay apuestas disponibles en este momento"
-                className="text-xs"
-              />
-            ) : (
-              <div className="space-y-2 max-h-48 overflow-y-auto">
-                {availableBets.map((bet) => (
-                  <div
-                    key={bet.id}
-                    className="card-background p-3 rounded border border-[#596c95]/20 text-xs"
-                  >
-                    <div className="flex justify-between">
-                      <span className="font-medium">{bet.choice}</span>
-                      <span className="text-green-500">${bet.amount}</span>
-                    </div>
-                    <div className="flex justify-between mt-1">
-                      <span>Usuario: {bet.createdBy}</span>
-                      <span>Cuota: {bet.odds}x</span>
-                    </div>
-                    <button
-                      onClick={() => onAcceptBet(bet.id)}
-                      disabled={isVenueRole || !isBettingOpen}
-                      className={`w-full mt-2 py-1 rounded text-xs ${
-                        isVenueRole || !isBettingOpen
-                          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                          : "bg-green-500 text-white hover:bg-green-600"
-                      }`}
-                    >
-                      Aceptar
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  },
-);
-
 // ✅ COMPONENTE PRINCIPAL CORREGIDO
 const LiveEvent = () => {
   const { eventId } = useParams<{ eventId: string }>();
@@ -544,9 +377,9 @@ const LiveEvent = () => {
   const { user } = useAuth();
 
   // ✅ FIXED: Use singleEvent state for individual event
-  const { fetchEventById, singleEventLoading, singleEventError } = useEvents();
+  const { fetchEventById, singleEventError } = useEvents();
 
-  const { bets, fetchAvailableBets, acceptBet } = useBets();
+  const { bets, fetchAvailableBets, acceptBet, fetchMyBets } = useBets();
   const { isBettingEnabled } = useFeatureFlags();
 
   // Estados locales
@@ -608,7 +441,6 @@ const LiveEvent = () => {
     import.meta.env.VITE_API_URL?.replace("/api", "") ||
     "http://localhost:3001";
   const {
-    lastEvent,
     status,
     error: sseError,
     subscribeToEvents,
@@ -620,7 +452,7 @@ const LiveEvent = () => {
     const unsubscribe = subscribeToEvents({
       // Handle fight updates - Use SSE data to reconcile fights array
       FIGHT_STATUS_UPDATE: (data) => {
-        const fightData = data.data;
+        const fightData = data.data as Fight;
         if (fightData?.eventId === eventId && fightData?.id) {
           console.log("🥊 SSE fight update received:", fightData);
           setCurrentEvent((prev) => {
@@ -638,7 +470,7 @@ const LiveEvent = () => {
         }
       },
       FIGHT_UPDATED: (data) => {
-        const fightData = data.data;
+        const fightData = data.data as Fight;
         if (fightData?.eventId === eventId && fightData?.id) {
           console.log("🥊 SSE fight update received:", fightData);
           setCurrentEvent((prev) => {
@@ -657,163 +489,154 @@ const LiveEvent = () => {
       },
       // Handle bet updates - Trust useBets hook, SSE is notification only
       NEW_BET: (data) => {
-        const betData = data.data;
+        const betData = data.data as Bet;
         if (betData?.eventId === eventId) {
-          console.log("💰 SSE bet update received:", betData);
-          // ✅ OPTIMIZED: useBets hook will handle refetch if subscribed
-          // No need for manual fetchAvailableBets call - prevents 429
+          console.log("💰 SSE NEW_BET received:", betData);
+          fetchAvailableBets(eventId); // Refresh available bets
         }
       },
       BET_MATCHED: (data) => {
-        const betData = data.data;
+        const betData = data.data as Bet;
         if (betData?.eventId === eventId) {
-          console.log("💰 SSE bet update received:", betData);
-          // ✅ OPTIMIZED: useBets hook will handle refetch if subscribed
-          // No need for manual fetchAvailableBets call - prevents 429
+          console.log("🤝 SSE BET_MATCHED received:", betData);
+          toast.success(`¡Tu apuesta de $${betData.amount} ha sido igualada!`);
+          fetchMyBets(); // Refresh my bets
+          fetchAvailableBets(eventId); // Refresh available bets
         }
       },
       // Handle event updates
       EVENT_ACTIVATED: (data) => {
-        const eventData = data.data;
+        const eventData = data.data as EventData;
         if (eventData?.id === eventId) {
-          console.log("📡 SSE event update received:", eventData);
+          console.log("📡 SSE EVENT_ACTIVATED received:", eventData);
           setCurrentEvent((prev) => {
             if (!prev) return null;
-            // ✅ Preserve fights - SSE payload only includes status/stream info
             return {
               ...prev,
               ...eventData,
-              fights: prev.fights, // ✅ Keep existing fights array
+              fights: prev.fights,
             };
           });
         }
       },
       EVENT_COMPLETED: (data) => {
-        const eventData = data.data;
+        const eventData = data.data as EventData;
         if (eventData?.id === eventId) {
-          console.log("📡 SSE event update received:", eventData);
+          console.log("📡 SSE EVENT_COMPLETED received:", eventData);
           setCurrentEvent((prev) => {
             if (!prev) return null;
-            // ✅ Preserve fights - SSE payload only includes status/stream info
             return {
               ...prev,
               ...eventData,
-              fights: prev.fights, // ✅ Keep existing fights array
+              fights: prev.fights,
             };
           });
         }
       },
       STREAM_STARTED: (data) => {
-        const eventData = data.data;
+        const eventData = data.data as EventData;
         if (eventData?.id === eventId) {
-          console.log("📡 SSE event update received:", eventData);
+          console.log("📡 SSE STREAM_STARTED received:", eventData);
           setCurrentEvent((prev) => {
             if (!prev) return null;
-            // ✅ Preserve fights - SSE payload only includes status/stream info
             return {
               ...prev,
               ...eventData,
               streamStatus: "connected",
               streamUrl: eventData.streamUrl || prev?.streamUrl,
-              fights: prev.fights, // ✅ Keep existing fights array
+              fights: prev.fights,
             };
           });
         }
       },
       STREAM_STOPPED: (data) => {
-        const eventData = data.data;
+        const eventData = data.data as EventData;
         if (eventData?.id === eventId) {
-          console.log("📡 SSE event update received:", eventData);
+          console.log("📡 SSE STREAM_STOPPED received:", eventData);
           setCurrentEvent((prev) => {
             if (!prev) return null;
-            // ✅ Preserve fights - SSE payload only includes status/stream info
             return {
               ...prev,
               ...eventData,
               streamStatus: "disconnected",
-              fights: prev.fights, // ✅ Keep existing fights array
+              fights: prev.fights,
             };
           });
         }
       },
       STREAM_PAUSED: (data) => {
-        const eventData = data.data;
+        const eventData = data.data as EventData;
         if (eventData?.id === eventId) {
-          console.log("📡 SSE event update received:", eventData);
+          console.log("📡 SSE STREAM_PAUSED received:", eventData);
           setCurrentEvent((prev) => {
             if (!prev) return null;
-            // ✅ Preserve fights - SSE payload only includes status/stream info
             return {
               ...prev,
               ...eventData,
               streamStatus: "paused",
-              fights: prev.fights, // ✅ Keep existing fights array
+              fights: prev.fights,
             };
           });
         }
       },
       STREAM_RESUMED: (data) => {
-        const eventData = data.data;
+        const eventData = data.data as EventData;
         if (eventData?.id === eventId) {
-          console.log("📡 SSE event update received:", eventData);
+          console.log("📡 SSE STREAM_RESUMED received:", eventData);
           setCurrentEvent((prev) => {
             if (!prev) return null;
-            // ✅ Preserve fights - SSE payload only includes status/stream info
             return {
               ...prev,
               ...eventData,
               streamStatus: "connected",
-              fights: prev.fights, // ✅ Keep existing fights array
+              fights: prev.fights,
             };
           });
         }
       },
       // HLS distribution events
       HLS_READY: (data) => {
-        const eventData = data.data;
+        const eventData = data.data as EventData;
         if (eventData?.id === eventId) {
           console.log("📡 SSE HLS ready event received:", eventData);
           setCurrentEvent((prev) => {
             if (!prev) return null;
-            // ✅ Update hlsStatus and streamUrl
             return {
               ...prev,
               ...eventData,
               hlsStatus: "ready",
               streamUrl: eventData.streamUrl || prev?.streamUrl,
-              fights: prev.fights, // ✅ Keep existing fights array
+              fights: prev.fights,
             };
           });
         }
       },
       HLS_UNAVAILABLE: (data) => {
-        const eventData = data.data;
+        const eventData = data.data as EventData;
         if (eventData?.id === eventId) {
           console.log("📡 SSE HLS unavailable event received:", eventData);
           setCurrentEvent((prev) => {
             if (!prev) return null;
-            // ✅ Update hlsStatus
             return {
               ...prev,
               ...eventData,
               hlsStatus: "offline",
-              fights: prev.fights, // ✅ Keep existing fights array
+              fights: prev.fights,
             };
           });
         }
       },
       HLS_PROCESSING: (data) => {
-        const eventData = data.data;
+        const eventData = data.data as EventData;
         if (eventData?.id === eventId) {
           console.log("📡 SSE HLS processing event received:", eventData);
           setCurrentEvent((prev) => {
             if (!prev) return null;
-            // ✅ Update hlsStatus
             return {
               ...prev,
               ...eventData,
               hlsStatus: "processing",
-              fights: prev.fights, // ✅ Keep existing fights array
+              fights: prev.fights,
             };
           });
         }
@@ -823,7 +646,7 @@ const LiveEvent = () => {
     return () => {
       unsubscribe();
     };
-  }, [eventId, status, subscribeToEvents]);
+  }, [eventId, status, subscribeToEvents, fetchAvailableBets, fetchMyBets]);
 
   // ✅ Load data on mount - only depend on eventId to avoid infinite loop
   useEffect(() => {
@@ -847,8 +670,9 @@ const LiveEvent = () => {
     [acceptBet, fetchAvailableBets, eventId],
   );
 
+  const [showCreateBetModal, setShowCreateBetModal] = useState(false);
   const handleCreateBet = useCallback(() => {
-    // TODO: Abrir modal de crear apuesta
+    setShowCreateBetModal(true);
   }, []);
 
   // ✅ FIXED: Only show spinner while loading event data
@@ -883,26 +707,29 @@ const LiveEvent = () => {
     );
   }
 
-  // ✅ Data para las tabs
-  const availableBets = (bets?.filter((bet) => bet.status === "active") ||
-    []) as Bet[];
-  const myBets = bets?.filter((bet) => bet.userId === user?.id) || [];
-
-  // CORRECTED: Fights are now derived from currentEvent
+  // Filter bets for the currently active fight
   const allFights = currentEvent?.fights || [];
+  const activeFight =
+    allFights.find((f) => f.status === "betting_open" || f.status === "in_progress") ||
+    allFights.find((f) => f.status === "ready"); // Fallback to ready if no betting_open or in_progress
+
+  // ✅ Data para las tabs - only show bets for the current fight
+  const availableBetsForFight = (bets?.filter((bet) => bet.fightId === activeFight?.id && bet.status === "pending") ||
+    []) as Bet[];
+  const myBetsForFight = (bets?.filter((bet) => bet.fightId === activeFight?.id && bet.userId === user?.id) || []) as Bet[];
+
+
   console.log("🎯 LiveEvent render: currentEvent =", currentEvent);
   console.log("🥊 LiveEvent render: allFights =", allFights);
-  const currentFight =
-    allFights.find((f) => f.status === "live") ||
-    allFights.find((f) => f.status === "betting");
+
 
   // ✅ Fights separation for modal
   const completedFights = allFights.filter((f) => f.status === "completed");
   const scheduledFights = allFights.filter(
     (f) =>
       f.status === "scheduled" ||
-      f.status === "betting" ||
-      f.status === "upcoming",
+      f.status === "betting_open" ||
+      f.status === "ready"
   );
   console.log("📊 LiveEvent: completedFights =", completedFights.length);
   console.log("📊 LiveEvent: scheduledFights =", scheduledFights.length);
@@ -1012,11 +839,11 @@ const LiveEvent = () => {
           <div className="card-background p-4 rounded-lg border border-[#596c95]/30 h-full">
             <div className="flex justify-between items-center mb-3">
               <h3 className="font-semibold text-theme-primary flex items-center gap-2">
-                {currentFight ? (
+                {activeFight ? (
                   <>
                     <Scale className="w-4 h-4" />
-                    Pelea #{currentFight.number}: {currentFight.redCorner} vs{" "}
-                    {currentFight.blueCorner}
+                    Pelea #{activeFight.number}: {activeFight.redCorner} vs{" "}
+                    {activeFight.blueCorner}
                   </>
                 ) : (
                   <>
@@ -1040,11 +867,11 @@ const LiveEvent = () => {
               </button>
             </div>
 
-            {currentFight && (
+            {activeFight && (
               <div className="flex items-center justify-between">
                 <div className="text-center">
                   <p className="font-medium text-theme-primary">
-                    {currentFight.redCorner}
+                    {activeFight.redCorner}
                   </p>
                   <p className="text-xs text-theme-light">Esquina Roja</p>
                 </div>
@@ -1052,13 +879,13 @@ const LiveEvent = () => {
                 <div className="text-center">
                   <Scale className="w-5 h-5 text-theme-light mx-auto" />
                   <p className="text-xs text-theme-light">
-                    {currentFight.weight}kg
+                    {activeFight.weight}kg
                   </p>
                 </div>
 
                 <div className="text-center">
                   <p className="font-medium text-theme-primary">
-                    {currentFight.blueCorner}
+                    {activeFight.blueCorner}
                   </p>
                   <p className="text-xs text-theme-light">Esquina Azul</p>
                 </div>
@@ -1068,7 +895,7 @@ const LiveEvent = () => {
         </div>
 
         {/* ✅ Row 2: Conditional Video Player */}
-        {currentEvent.status === "in-progress" ? (
+        {currentEvent.status === "in_progress" ? ( // Changed from "in-progress"
           <SubscriptionGuard
             feature="video streaming"
             showUpgradePrompt={true}
@@ -1109,36 +936,43 @@ const LiveEvent = () => {
         {isBettingEnabled && (
           <div className="mx-4 mb-6 card-background p-4 rounded-lg border border-[#596c95]/30">
             {/* Status Banner based on fight status */}
-            {currentFight && (
+            {activeFight && (
               <div
                 className={`mb-4 p-3 rounded-lg text-center font-semibold ${
-                  currentFight.status === "betting"
+                  activeFight.status === "betting_open"
                     ? "bg-green-500/20 text-green-500 border border-green-500/30"
-                    : currentFight.status === "live"
+                    : activeFight.status === "in_progress"
                       ? "bg-red-500/20 text-red-500 border border-red-500/30"
-                      : currentFight.status === "completed"
-                        ? "bg-gray-500/20 text-gray-500 border border-gray-500/30"
+                      : activeFight.status === "completed"
+                        ? "bg-purple-500/20 text-purple-500 border border-purple-500/30"
                         : "bg-blue-500/20 text-blue-500 border border-blue-500/30"
                 }`}
               >
-                {currentFight.status === "betting" && "APUESTAS ABIERTAS"}
-                {currentFight.status === "live" &&
+                {activeFight.status === "betting_open" && "APUESTAS ABIERTAS"}
+                {activeFight.status === "in_progress" &&
                   "APUESTAS CERRADAS - PELEA EN CURSO"}
-                {currentFight.status === "completed" && "PELEA FINALIZADA"}
-                {(currentFight.status === "upcoming" ||
-                  currentFight.status === "scheduled") &&
+                {activeFight.status === "completed" && "PELEA FINALIZADA"}
+                {(activeFight.status === "scheduled" ||
+                  activeFight.status === "ready") &&
                   "PRÓXIMA PELEA"}
               </div>
             )}
-            <BettingPanel
-              availableBets={availableBets}
-              myBets={myBets}
-              currentFight={currentFight}
-              onAcceptBet={handleAcceptBet}
-              onCreateBet={handleCreateBet}
-              isVenueRole={isVenueRole}
-              isBettingOpen={currentFight?.status === "betting"}
-            />
+            {activeFight && (
+              <BettingPanelComponent
+                fightId={activeFight.id}
+                onBetPlaced={() => {
+                  fetchMyBets();
+                  fetchAvailableBets(eventId);
+                }}
+                isBettingOpen={activeFight.status === "betting_open"}
+              />
+            )}
+            {!activeFight && (
+              <EmptyState
+                title="No hay peleas activas para apostar"
+                description="Esperando la próxima pelea o apertura de apuestas."
+              />
+            )}
           </div>
         )}
 
@@ -1152,7 +986,7 @@ const LiveEvent = () => {
             })}
             <FightPreviewModal
               fights={allFights}
-              currentFight={currentFight}
+              currentFight={activeFight}
               completedFights={completedFights}
               scheduledFights={scheduledFights}
               onClose={() => setShowFightModal(false)}
@@ -1160,6 +994,16 @@ const LiveEvent = () => {
           </>
         )}
       </div>
+      {showCreateBetModal && activeFight && (
+        <CreateBetModal
+          fightId={activeFight.id}
+          onClose={() => {
+            setShowCreateBetModal(false);
+            fetchMyBets(); // Refresh my bets after creating one
+            fetchAvailableBets(eventId); // Refresh available bets
+          }}
+        />
+      )}
     </SubscriptionGuard>
   );
 };
