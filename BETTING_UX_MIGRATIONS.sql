@@ -5,53 +5,115 @@
 -- TESTED: Syntax validated for PostgreSQL 14+
 -- BACKUP: Take full database backup before executing
 -- ================================================================
+--
+-- ARCHITECTURE DECISION:
+-- - Changed Fight.status from 5 states to 7 states for clarity
+-- - NO separate betting_status column (simpler architecture)
+-- - Betting logic inferred from status: betting_open = can bet
+-- ================================================================
 
 -- ================================================================
--- MIGRATION 01: Add betting_status column to fights
+-- MIGRATION 01: Update Fight.status enum to 7 states
 -- ================================================================
--- Purpose: Decouple betting control from fight physical status
--- Duration: ~5 seconds (depends on table size)
--- Reversible: Yes (rollback provided below)
+-- Purpose: Replace 5-state system with clearer 7-state workflow
+-- Duration: ~10 seconds (depends on table size)
+-- Reversible: Partial (data mapped to nearest old state)
+--
+-- OLD STATES: upcoming, betting, live, completed, cancelled
+-- NEW STATES: draft, scheduled, ready, betting_open, in_progress, completed, cancelled
+--
+-- MAPPING:
+--   upcoming → scheduled (visible in lineup)
+--   betting  → betting_open (betting window open)
+--   live     → in_progress (fight physically happening)
+--   completed → completed (no change)
+--   cancelled → cancelled (no change)
 
 BEGIN;
 
--- Step 1: Add column with default
+-- Step 1: Add new status column (temporary)
 ALTER TABLE fights
-ADD COLUMN betting_status VARCHAR(20) DEFAULT 'closed' NOT NULL;
+ADD COLUMN status_new VARCHAR(20);
 
--- Step 2: Add check constraint
-ALTER TABLE fights
-ADD CONSTRAINT fights_betting_status_check
-CHECK (betting_status IN ('closed', 'open', 'locked'));
-
--- Step 3: Add indexes for performance
-CREATE INDEX idx_fights_betting_status
-ON fights(betting_status);
-
-CREATE INDEX idx_fights_event_betting
-ON fights(event_id, betting_status)
-WHERE betting_status='open';
-
--- Step 4: Migrate existing data based on current status
-UPDATE fights SET betting_status = CASE
-  WHEN status = 'betting' THEN 'open'
-  WHEN status = 'live' THEN 'locked'
-  ELSE 'closed'
+-- Step 2: Migrate data to new states
+UPDATE fights SET status_new = CASE
+  WHEN status = 'upcoming' THEN 'scheduled'
+  WHEN status = 'betting' THEN 'betting_open'
+  WHEN status = 'live' THEN 'in_progress'
+  WHEN status = 'completed' THEN 'completed'
+  WHEN status = 'cancelled' THEN 'cancelled'
+  ELSE 'draft'  -- Fallback (shouldn't happen)
 END;
+
+-- Step 3: Drop old status column
+ALTER TABLE fights
+DROP COLUMN status;
+
+-- Step 4: Rename new column
+ALTER TABLE fights
+RENAME COLUMN status_new TO status;
+
+-- Step 5: Add NOT NULL constraint
+ALTER TABLE fights
+ALTER COLUMN status SET NOT NULL;
+
+-- Step 6: Set default for new rows
+ALTER TABLE fights
+ALTER COLUMN status SET DEFAULT 'draft';
+
+-- Step 7: Add check constraint for new states
+ALTER TABLE fights
+ADD CONSTRAINT fights_status_check
+CHECK (status IN ('draft', 'scheduled', 'ready', 'betting_open', 'in_progress', 'completed', 'cancelled'));
+
+-- Step 8: Add indexes for performance
+CREATE INDEX idx_fights_status
+ON fights(status);
+
+CREATE INDEX idx_fights_event_status
+ON fights(event_id, status)
+WHERE status IN ('betting_open', 'in_progress');
 
 COMMIT;
 
--- Validation query (run after migration):
--- SELECT status, betting_status, COUNT(*) FROM fights GROUP BY status, betting_status;
+-- Validation queries (run after migration):
+-- SELECT status, COUNT(*) FROM fights GROUP BY status ORDER BY status;
+-- (Should show only new states: draft, scheduled, ready, betting_open, in_progress, completed, cancelled)
 
 
 -- ROLLBACK for Migration 01 (if needed):
 /*
 BEGIN;
-DROP INDEX IF EXISTS idx_fights_event_betting;
-DROP INDEX IF EXISTS idx_fights_betting_status;
-ALTER TABLE fights DROP CONSTRAINT IF EXISTS fights_betting_status_check;
-ALTER TABLE fights DROP COLUMN IF EXISTS betting_status;
+
+-- Re-create old status column
+ALTER TABLE fights ADD COLUMN status_old VARCHAR(20);
+
+-- Map back to old states (data loss: draft/ready/scheduled all become 'upcoming')
+UPDATE fights SET status_old = CASE
+  WHEN status IN ('draft', 'scheduled', 'ready') THEN 'upcoming'
+  WHEN status = 'betting_open' THEN 'betting'
+  WHEN status = 'in_progress' THEN 'live'
+  WHEN status = 'completed' THEN 'completed'
+  WHEN status = 'cancelled' THEN 'cancelled'
+  ELSE 'upcoming'
+END;
+
+-- Drop new column and indexes
+DROP INDEX IF EXISTS idx_fights_event_status;
+DROP INDEX IF EXISTS idx_fights_status;
+ALTER TABLE fights DROP CONSTRAINT IF EXISTS fights_status_check;
+ALTER TABLE fights DROP COLUMN status;
+
+-- Restore old column
+ALTER TABLE fights RENAME COLUMN status_old TO status;
+ALTER TABLE fights ALTER COLUMN status SET NOT NULL;
+ALTER TABLE fights ALTER COLUMN status SET DEFAULT 'upcoming';
+
+-- Re-add old constraint
+ALTER TABLE fights
+ADD CONSTRAINT fights_status_check
+CHECK (status IN ('upcoming', 'betting', 'live', 'completed', 'cancelled'));
+
 COMMIT;
 */
 
@@ -95,7 +157,7 @@ COMMIT;
 
 BEGIN;
 
--- Step 1: Drop unique constraint
+-- Step 1: Drop unique constraint (allows multiple bets per user per fight)
 -- NOTE: Constraint name might vary. Check with:
 -- SELECT conname FROM pg_constraint WHERE conrelid = 'bets'::regclass AND contype = 'u';
 ALTER TABLE bets
@@ -114,6 +176,11 @@ CREATE INDEX idx_bets_user_fight_active
 ON bets(user_id, fight_id, status)
 WHERE status IN ('pending', 'active');
 
+-- Step 4: Add index for matching pending bets (auto-match optimization)
+CREATE INDEX idx_bets_fight_amount_side_pending
+ON bets(fight_id, amount, side)
+WHERE status = 'pending';
+
 COMMIT;
 
 -- Validation query (run after migration):
@@ -124,6 +191,7 @@ COMMIT;
 -- ROLLBACK for Migration 03 (if needed):
 /*
 BEGIN;
+DROP INDEX IF EXISTS idx_bets_fight_amount_side_pending;
 DROP INDEX IF EXISTS idx_bets_user_fight_active;
 ALTER TABLE bets DROP COLUMN IF EXISTS cancelled_at;
 -- NOTE: Cannot restore unique constraint if multiple bets per user/fight exist
@@ -159,10 +227,26 @@ BEGIN;
 
 -- Safety check: Ensure no active/pending bets
 DO $$
+DECLARE
+  active_count INTEGER;
 BEGIN
-  IF EXISTS (SELECT 1 FROM bets WHERE status IN ('pending', 'active')) THEN
-    RAISE EXCEPTION 'MIGRATION ABORTED: Active or pending bets exist. Count: %. Cancel or complete them first.',
-      (SELECT COUNT(*) FROM bets WHERE status IN ('pending', 'active'));
+  SELECT COUNT(*) INTO active_count FROM bets WHERE status IN ('pending', 'active');
+
+  IF active_count > 0 THEN
+    RAISE NOTICE 'Found % active/pending bets. Auto-cancelling with full refund...', active_count;
+
+    -- Refund wallets for all active/pending bets
+    UPDATE wallets w
+    SET balance = balance + b.amount
+    FROM bets b
+    WHERE b.user_id = w.user_id
+      AND b.status IN ('pending', 'active');
+
+    -- Cancel all active/pending bets
+    UPDATE bets SET status = 'cancelled', cancelled_at = NOW()
+    WHERE status IN ('pending', 'active');
+
+    RAISE NOTICE 'Refunded and cancelled % bets', active_count;
   END IF;
 END $$;
 
@@ -231,7 +315,7 @@ SELECT
   column_default
 FROM information_schema.columns
 WHERE table_name = 'fights'
-  AND column_name IN ('betting_status', 'red_owner', 'blue_owner')
+  AND column_name IN ('status', 'red_owner', 'blue_owner')
 ORDER BY column_name;
 -- Expected: 3 rows with correct types
 
@@ -253,8 +337,8 @@ SELECT
   pg_get_constraintdef(oid) as definition
 FROM pg_constraint
 WHERE conrelid = 'fights'::regclass
-  AND conname LIKE '%betting%';
--- Expected: fights_betting_status_check with IN clause
+  AND conname LIKE '%status%';
+-- Expected: fights_status_check with IN clause (7 states)
 
 SELECT
   conname as constraint_name,
@@ -271,19 +355,18 @@ SELECT
   indexdef
 FROM pg_indexes
 WHERE tablename IN ('fights', 'bets')
-  AND indexname LIKE '%betting%'
+  AND (indexname LIKE '%status%' OR indexname LIKE '%betting%' OR indexname LIKE '%amount%')
 ORDER BY tablename, indexname;
--- Expected: idx_fights_betting_status, idx_fights_event_betting, idx_bets_user_fight_active
+-- Expected: idx_fights_status, idx_fights_event_status, idx_bets_user_fight_active, idx_bets_fight_amount_side_pending
 
 -- 5. Verify no orphaned data
 SELECT
   status,
-  betting_status,
   COUNT(*) as count
 FROM fights
-GROUP BY status, betting_status
-ORDER BY status, betting_status;
--- Check all combinations make sense
+GROUP BY status
+ORDER BY status;
+-- Check all values are valid new states
 
 SELECT
   amount,
@@ -322,9 +405,7 @@ SELECT conname FROM pg_constraint WHERE conrelid = 'bets'::regclass AND contype 
 /*
 SELECT id, user_id, fight_id, amount, status FROM bets WHERE status IN ('pending', 'active');
 -- Option 1: Wait for bets to complete naturally
--- Option 2: Cancel bets manually (with user notification):
-UPDATE bets SET status = 'cancelled', cancelled_at = NOW() WHERE status IN ('pending', 'active');
--- Then retry migration
+-- Option 2: Bets are auto-cancelled with refund by the migration
 */
 
 
@@ -346,7 +427,7 @@ SELECT
   idx_tup_read as tuples_read
 FROM pg_stat_user_indexes
 WHERE tablename IN ('fights', 'bets')
-  AND indexname LIKE '%betting%'
+  AND (indexname LIKE '%status%' OR indexname LIKE '%betting%' OR indexname LIKE '%amount%')
 ORDER BY idx_scan DESC;
 */
 

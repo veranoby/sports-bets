@@ -1,0 +1,227 @@
+{
+  "project": "Sports Bets Platform - Betting UX Refactor",
+  "task_id": "BETTING_REFACTOR_V3_FINAL",
+  "priority": "P0_CRITICAL",
+  "assigned_to": "GEMINI",
+  "execution_mode": "STANDARD (with validation gates)",
+
+  "CRITICAL_CONTEXT": {
+    "sql_migrations_status": "SQL migrations ready, user will execute in pgAdmin",
+    "backend_status": "Sonnet updating Fight model + API endpoints",
+    "haiku_task": "HAIKU will handle WebSocket/HLSPlayer deletion after you finish",
+    "your_scope": "Frontend refactoring ONLY - update UI to work with new architecture"
+  },
+
+  "ARCHITECTURE_CHANGES": {
+    "fight_status_enum": {
+      "old": ["upcoming", "betting", "live", "completed", "cancelled"],
+      "new": ["draft", "scheduled", "ready", "betting_open", "in_progress", "completed", "cancelled"],
+      "mapping": {
+        "draft": "Just created, not visible to users yet",
+        "scheduled": "In event lineup, visible as 'upcoming'",
+        "ready": "Next to be transmitted, highlighted",
+        "betting_open": "Users CAN place bets ✅",
+        "in_progress": "Fight physically happening, betting LOCKED",
+        "completed": "Finished with winner declared",
+        "cancelled": "Cancelled, bets refunded"
+      }
+    },
+
+    "betting_logic": {
+      "removed": "Fight.bettingStatus column (no longer exists)",
+      "new_logic": "if (fight.status === 'betting_open') → user can bet",
+      "methods_to_use": {
+        "canAcceptBets": "fight.status === 'betting_open'",
+        "isBettingLocked": "fight.status === 'in_progress'",
+        "isBettingClosed": "fight.status !== 'betting_open'"
+      }
+    },
+
+    "multiple_bets_per_user": {
+      "allowed": true,
+      "reason": "User can create multiple bets to increase match opportunities",
+      "example": "User creates 3 bets: $20 Rojo, $20 Rojo, $10 Rojo → 2 match, 1 pending",
+      "ui_impact": "Show each bet as separate card, allow cancelling individually"
+    },
+
+    "fixed_bet_amounts": {
+      "values": [5, 10, 20, 50, 100, 200, 500],
+      "ui": "Dropdown selector instead of free input",
+      "matching": "Exact amount only: if (bet1.amount === bet2.amount && bet1.side !== bet2.side) → AUTO-MATCH",
+      "backend_handles": "PostgreSQL transaction auto-matches on INSERT, SSE notifies"
+    }
+  },
+
+  "CODE_TO_DELETE": {
+    "doy_pago_system": {
+      "files_to_delete": [
+        "src/components/betting/DOYProposalModal.tsx",
+        "src/components/betting/PAGOProposalModal.tsx",
+        "src/components/betting/AcceptPagoModal.tsx"
+      ],
+      "imports_to_remove": [
+        "All imports of above modals in pages/components",
+        "DOY/PAGO related types from types/index.ts"
+      ],
+      "logic_to_remove": [
+        "betType === 'doy' | 'pago' conditionals",
+        "Proposal timeout logic",
+        "Ratio calculations (bet.terms.ratio)"
+      ],
+      "note": "WebSocket deletion will be handled by HAIKU after you finish"
+    }
+  },
+
+  "UI_UPDATES_REQUIRED": {
+    "1_bets_page": {
+      "file": "src/pages/user/Bets.tsx",
+      "changes": [
+        "Right column: Show ALL pending bets from ALL events (not just live)",
+        "Each bet card: Show event name + fight number",
+        "Add 'Ver Evento' button to jump to live event",
+        "Handle multiple bets per user per fight (show as separate cards)",
+        "Remove DOY/PAGO related UI completely"
+      ],
+      "layout": "Left: My Active Bets (all) | Right: Available Bets (global, all events)"
+    },
+
+    "2_live_event_page": {
+      "file": "src/pages/user/LiveEvent.tsx",
+      "changes": [
+        "Update fight status display: Use new 7 states",
+        "Betting enabled check: fight.status === 'betting_open'",
+        "Show bet amount as dropdown with fixed values",
+        "Remove DOY/PAGO modals completely",
+        "Auto-match notification: SSE event 'bet_matched' → toast",
+        "Handle multiple bets per fight (user can have 3+ pending)"
+      ]
+    },
+
+    "3_admin_event_controls": {
+      "files": [
+        "src/components/admin/events/EventDetail.tsx",
+        "src/components/admin/EventWorkflowControls.tsx"
+      ],
+      "changes": [
+        "Update status buttons: 7 states instead of 5",
+        "New buttons: 'Mark Ready', 'Open Betting', 'Close Betting', 'Start Fight'",
+        "Status flow: draft → scheduled → ready → betting_open → in_progress → completed",
+        "Remove betting_status related UI"
+      ]
+    },
+
+    "4_fight_displays": {
+      "files": [
+        "src/components/admin/events/EventList.tsx",
+        "src/pages/user/Events.tsx"
+      ],
+      "changes": [
+        "Update status badges: Map 7 states to colors/labels",
+        "draft: gray 'Borrador'",
+        "scheduled: blue 'Programada'",
+        "ready: yellow 'Próxima'",
+        "betting_open: green 'Apuestas Abiertas' ← KEY STATE",
+        "in_progress: red 'En Progreso'",
+        "completed: purple 'Finalizada'",
+        "cancelled: gray 'Cancelada'"
+      ]
+    }
+  },
+
+  "SSE_EVENTS_TO_UPDATE": {
+    "keep": [
+      "betting_opened: Notify when fight.status → betting_open",
+      "betting_locked: Notify when fight.status → in_progress",
+      "bet_matched: Notify when PostgreSQL auto-matched bet",
+      "fight_started: Notify when fight.status → in_progress",
+      "fight_completed: Notify when fight.status → completed",
+      "FIGHT_STATUS_UPDATE: Update fight status in real-time"
+    ],
+    "remove": [
+      "pago_proposal, doy_proposal, bet_proposal_timeout (DOY/PAGO related)"
+    ],
+    "note": "SSE infrastructure stays, only event types change"
+  },
+
+  "VALIDATION_PROTOCOL": {
+    "after_each_file": [
+      "Run: npx tsc --noEmit (MUST pass with 0 errors)",
+      "If fails: REVERT immediately, fix properly"
+    ],
+    "before_commit": [
+      "Run: npm run lint (can have warnings, but NO new errors)",
+      "Test: Click through UI manually if possible"
+    ],
+    "commit_frequency": "Every 10-15 files OR after major section (e.g., after deleting all DOY/PAGO)"
+  },
+
+  "EXECUTION_STEPS": {
+    "phase_1_delete_doy_pago": {
+      "order": 1,
+      "tasks": [
+        "Delete DOYProposalModal.tsx",
+        "Delete PAGOProposalModal.tsx",
+        "Delete AcceptPagoModal.tsx",
+        "Remove all imports of above in pages/components",
+        "Remove betType === 'doy'|'pago' logic",
+        "Update Bet type to remove doy/pago fields"
+      ],
+      "validation": "TypeScript compiles, no references to DOY/PAGO remain",
+      "commit": "[REFACTOR] Remove DOY/PAGO bet system"
+    },
+
+    "phase_2_update_fight_status_displays": {
+      "order": 2,
+      "tasks": [
+        "Update all status displays to handle 7 states",
+        "Add status badge components/mappings",
+        "Update EventDetail admin controls",
+        "Update EventList fight cards"
+      ],
+      "validation": "All fight displays show correct status",
+      "commit": "[REFACTOR] Update Fight status to 7-state system"
+    },
+
+    "phase_3_update_betting_ui": {
+      "order": 3,
+      "tasks": [
+        "Update LiveEvent betting panel",
+        "Add fixed amount dropdown",
+        "Update Bets.tsx right column (global available)",
+        "Update betting enabled logic (status === 'betting_open')",
+        "Add SSE bet_matched handler"
+      ],
+      "validation": "Betting UI works with new logic",
+      "commit": "[REFACTOR] Update betting UI - fixed amounts + auto-match"
+    },
+
+    "phase_4_update_sse_handlers": {
+      "order": 4,
+      "tasks": [
+        "Update SSE event handlers",
+        "Remove DOY/PAGO event listeners",
+        "Add bet_matched toast notification",
+        "Update FIGHT_STATUS_UPDATE to handle 7 states"
+      ],
+      "validation": "SSE events handled correctly",
+      "commit": "[REFACTOR] Update SSE handlers for new architecture"
+    }
+  },
+
+  "CRITICAL_RULES": {
+    "1": "NO touching WebSocket code - HAIKU will delete it",
+    "2": "NO touching HLSPlayer code - HAIKU will delete it",
+    "3": "NO touching backend code - Sonnet handles that",
+    "4": "TypeScript MUST compile after EVERY file edit",
+    "5": "Commit every 10-15 files max",
+    "6": "If stuck, ask Sonnet for clarification"
+  },
+
+  "EXPECTED_OUTCOME": {
+    "files_modified": "~30-40 frontend files",
+    "files_deleted": "3 modal files + DOY/PAGO logic",
+    "commits": "4-6 incremental commits",
+    "duration": "2-3 hours",
+    "final_state": "Frontend works with 7-state Fight system + fixed amounts + auto-match"
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "project": "Sports Bets Platform - WebSocket & HLSPlayer Cleanup",
+  "task_id": "CLEANUP_WEBSOCKET_HLSPLAYER",
+  "assigned_to": "HAIKU",
+  "complexity": "LOW_MECHANICAL",
+
+  "TASK_1_DELETE_WEBSOCKET_IMPORTS": {
+    "files": "26 files (use: grep -r 'import.*WebSocket' src/)",
+    "protocol": [
+      "Read file",
+      "Delete import line matching: import.*WebSocket",
+      "npx tsc --noEmit",
+      "If pass: next file. If fail: STOP and report"
+    ],
+    "commit_every": "5 files"
+  },
+
+  "TASK_2_REPLACE_HLSPLAYER": {
+    "files": [
+      "src/pages/admin/OptimizedStreamingMonitor.tsx",
+      "src/pages/admin/Streaming.tsx",
+      "src/pages/user/LiveEvent.tsx",
+      "src/components/admin/StreamingControlTab.tsx",
+      "src/components/admin/events/EventDetail.tsx"
+    ],
+    "replacement": {
+      "import_old": "import HLSPlayer from \"...\"",
+      "import_new": "import VideoPlayer from \"../../components/streaming/VideoPlayer\"",
+      "usage_old": "<HLSPlayer streamUrl={url} />",
+      "usage_new": "<VideoPlayer src={url} streamId={streamId} />"
+    },
+    "validation": "npx tsc --noEmit"
+  },
+
+  "TASK_3_DELETE_FILES": {
+    "files": [
+      "src/contexts/WebSocketContext.tsx",
+      "src/hooks/useWebSocket.ts",
+      "src/components/streaming/HLSPlayer.tsx"
+    ],
+    "command": "rm -f <files>",
+    "validation": "grep -r 'WebSocketContext|useWebSocket|HLSPlayer' src/ (MUST return 0 matches)"
+  },
+
+  "CRITICAL_RULES": {
+    "1": "TypeScript MUST compile after each edit",
+    "2": "If error: REVERT immediately (git checkout -- <file>)",
+    "3": "NO modifying other code",
+    "4": "NO comments like '// removed'",
+    "5": "Commit every 5 files"
+  }
+}
