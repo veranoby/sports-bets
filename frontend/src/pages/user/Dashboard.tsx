@@ -109,7 +109,6 @@ const UserDashboard: React.FC = () => {
     loadUpcomingEvents();
   }, []);
 
-
   // ✅ Datos computados simplificados (solo eventos)
   const { liveEvents } = useMemo(() => {
     const liveEvents =

@@ -249,7 +249,6 @@ const Wallet: React.FC = () => {
     }
   };
 
-
   if (loading && !refreshing) {
     return (
       <div className="bg-theme-main text-theme-primary">

@@ -7,7 +7,6 @@ import React, { useCallback, useMemo, memo } from "react";
 import { Zap, Play, Users, MapPin, Activity, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEvents } from "../../hooks/useApi";
-import { useWebSocketListener } from "../../hooks/useWebSocket";
 import LoadingSpinner from "../shared/LoadingSpinner";
 import type { EventData } from "../../types";
 
@@ -97,14 +96,6 @@ const PremiumEventCard = memo(({ event }: { event: EventData }) => {
 // ✅ COMPONENTE PRINCIPAL - LiveEventsWidget
 const LiveEventsWidget: React.FC = () => {
   const { events, loading, error, fetchEvents } = useEvents();
-
-  // ✅ WEBSOCKET LISTENERS
-  useWebSocketListener(
-    "event_started",
-    useCallback(() => {
-      fetchEvents();
-    }, [fetchEvents]),
-  );
 
   // Filters: Only In-Progress Events
   const liveEvents = useMemo(() => {

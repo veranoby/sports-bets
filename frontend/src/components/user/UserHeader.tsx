@@ -20,7 +20,6 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useWallet, useNotifications, useBets } from "../../hooks/useApi";
-import { useWebSocketListener } from "../../hooks/useWebSocket";
 import { useFeatureFlags } from "../../hooks/useFeatureFlags";
 import { useSubscription } from "../../hooks/useSubscription";
 import SubscriptionStatus from "../subscriptions/SubscriptionStatus";
@@ -582,36 +581,6 @@ const UserHeader = memo(() => {
     </div>
   );
 
-  // 🔔 WALLET UPDATES - Para balance en header
-  useWebSocketListener(
-    "wallet_updated",
-    useCallback(() => {
-      fetchWallet();
-    }, [fetchWallet]),
-  );
-
-  // 🎯 BET UPDATES - Para contador apuestas en header
-  useWebSocketListener(
-    "bet_matched",
-    useCallback(() => {
-      fetchMyBets();
-    }, [fetchMyBets]),
-  );
-
-  useWebSocketListener(
-    "bet_result",
-    useCallback(() => {
-      fetchMyBets();
-    }, [fetchMyBets]),
-  );
-
-  // 🔔 NOTIFICATIONS - Para contador notificaciones en header
-  useWebSocketListener(
-    "new_notification",
-    useCallback(() => {
-      fetchNotifications();
-    }, [fetchNotifications]),
-  );
 
   // 📄 Author's articles count (all statuses: draft, pending, published)
   useEffect(() => {

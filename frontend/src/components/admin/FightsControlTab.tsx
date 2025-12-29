@@ -102,7 +102,8 @@ const FightsControlTab: React.FC<FightsControlTabProps> = ({
                 </div>
                 <div className="flex space-x-1">
                   {/* Edit button - only show if fight status is draft or scheduled */}
-                  {(fight.status === "draft" || fight.status === "scheduled") && (
+                  {(fight.status === "draft" ||
+                    fight.status === "scheduled") && (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();

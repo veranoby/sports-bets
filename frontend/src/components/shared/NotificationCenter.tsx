@@ -11,7 +11,6 @@ import React, {
 } from "react";
 import { Bell, X, Check, Archive } from "lucide-react";
 import { apiClient } from "../../services/api";
-import { useWebSocketContext } from "../../contexts/WebSocketContext";
 
 interface Notification {
   id: string;
@@ -28,7 +27,6 @@ const NotificationCenter: React.FC = memo(() => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { addListener, isConnected } = useWebSocketContext();
 
   // 🛡️ REFERENCIAS ESTABLES PARA PREVENIR RE-RENDERS
   const isMountedRef = useRef(true);
@@ -94,32 +92,6 @@ const NotificationCenter: React.FC = memo(() => {
     [],
   );
 
-  // 🔒 EFFECT ÚNICO PARA LISTENERS - REGISTRO ÚNICO
-  useEffect(() => {
-    if (!isConnected || listenersRegisteredRef.current) {
-      return;
-    }
-
-    const componentId = componentIdRef.current;
-    console.log(`🎧 ${componentId} registrando listeners WebSocket`);
-
-    addListener("notification:new", handleNewNotification);
-    addListener("notification:update", handleUpdateNotification);
-    listenersRegisteredRef.current = true;
-
-    return () => {
-      if (listenersRegisteredRef.current) {
-        console.log(`🧹 ${componentId} limpiando listeners WebSocket`);
-        // Cleanup handled by addListener return value
-        listenersRegisteredRef.current = false;
-      }
-    };
-  }, [
-    isConnected,
-    addListener,
-    handleNewNotification,
-    handleUpdateNotification,
-  ]);
 
   // 🧹 CLEANUP EN UNMOUNT - ROBUSTO
   useEffect(() => {
@@ -136,7 +108,7 @@ const NotificationCenter: React.FC = memo(() => {
         listenersRegisteredRef.current = false;
       }
     };
-  }, [addListener, handleNewNotification, handleUpdateNotification]);
+  }, [handleNewNotification, handleUpdateNotification]);
 
   // ✅ FETCH SOLO CUANDO SE ABRE EL PANEL
   useEffect(() => {

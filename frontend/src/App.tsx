@@ -8,7 +8,6 @@ import LoadingSpinner from "./components/shared/LoadingSpinner";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 // ❌ ELIMINADO: import { UserThemeProvider } from "./contexts/UserThemeContext";
-import { WebSocketProvider } from "./contexts/WebSocketContext";
 
 // Layouts por rol
 import UserLayout from "./components/layouts/UserLayout";
@@ -402,9 +401,7 @@ function App() {
       }
     >
       <AuthProvider>
-        <WebSocketProvider>
-          <AppContent />
-        </WebSocketProvider>
+        <AppContent />
       </AuthProvider>
     </ErrorBoundary>
   );

@@ -983,7 +983,8 @@ const EventDetail: React.FC<EventDetailProps> = ({
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {/* Conditional rendering based on fight status to enforce sequential workflow */}
-                  {(selectedFight?.status === "ready" || selectedFight?.status === "scheduled") && (
+                  {(selectedFight?.status === "ready" ||
+                    selectedFight?.status === "scheduled") && (
                     <button
                       onClick={handleOpenBetting}
                       disabled={

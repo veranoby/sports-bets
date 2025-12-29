@@ -120,7 +120,6 @@ export const useStreamAnalytics = (options: UseStreamAnalyticsOptions = {}) => {
     }
   }, []);
 
-
   useEffect(() => {
     if (!autoRefresh) return;
 
